@@ -3,6 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import beijingBg from '../assets/backgrounds/Beijing.jpg';
 import stanfordBg from '../assets/backgrounds/Stanford.jpg';
 import walkingGif from '../assets/characters/walking.gif';
+import marioBlock from '../assets/items/mario-block.gif';
+import brick from '../assets/items/brick.png';
+
+type Event = {
+  type: 'text' | 'image' | 'video';
+  content: string;
+  image?: string;
+  video?: string;
+};
+
+type Block = {
+  position: number; // characterPosition percentage
+  event: Event;
+};
 
 type Level = {
   id: number;
@@ -10,6 +24,7 @@ type Level = {
   background: string;
   mission: string;
   year: string;
+  blocks: Block[];
 };
 
 const levels: Level[] = [
@@ -18,14 +33,46 @@ const levels: Level[] = [
     name: 'BEIJING',
     background: beijingBg,
     mission: 'I was born in Beijing, China',
-    year: '1995'
+    year: '1995',
+    blocks: [
+      {
+        position: 60,
+        event: {
+          type: 'text',
+          content: 'Welcome to Beijing! This is where my journey began.'
+        }
+      },
+      {
+        position: 180,
+        event: {
+          type: 'text',
+          content: 'Growing up in Beijing shaped my perspective on technology and innovation.'
+        }
+      }
+    ]
   },
   {
     id: 2,
     name: 'STANFORD',
     background: stanfordBg,
     mission: 'Mastered computer science',
-    year: '2015'
+    year: '2015',
+    blocks: [
+      {
+        position: 35,
+        event: {
+          type: 'text',
+          content: 'Stanford University - where I deepened my understanding of computer science.'
+        }
+      },
+      {
+        position: 75,
+        event: {
+          type: 'text',
+          content: 'The knowledge gained here became the foundation of my career.'
+        }
+      }
+    ]
   }
 ];
 
@@ -33,15 +80,28 @@ const Game: React.FC = () => {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [characterPosition, setCharacterPosition] = useState(0);
   const [showLevelComplete, setShowLevelComplete] = useState(false);
+  const [isJumping, setIsJumping] = useState(false);
+  const [facingDirection, setFacingDirection] = useState<'left' | 'right'>('right');
+  const [hitBlocks, setHitBlocks] = useState<Set<number>>(new Set());
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const levelCompleteTriggered = useRef(false);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        setFacingDirection('right');
         setCharacterPosition((prev) => Math.min(prev + 3, 100));
       }
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        setFacingDirection('left');
         setCharacterPosition((prev) => Math.max(prev - 3, 0));
+      }
+      if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && !isJumping) {
+        setIsJumping(true);
+        setTimeout(() => {
+          setIsJumping(false);
+        }, 600);
       }
     };
 
@@ -50,12 +110,17 @@ const Game: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, []);
+  }, [isJumping]);
 
   // Reset level complete trigger when level changes
   useEffect(() => {
     levelCompleteTriggered.current = false;
     setShowLevelComplete(false);
+    setIsJumping(false);
+    setFacingDirection('right');
+    setHitBlocks(new Set());
+    setShowEventModal(false);
+    setCurrentEvent(null);
   }, [currentLevel]);
 
   useEffect(() => {
@@ -64,6 +129,32 @@ const Game: React.FC = () => {
       setShowLevelComplete(true);
     }
   }, [characterPosition, currentLevel]);
+
+  // Check for block collisions
+  useEffect(() => {
+    if (!isJumping) return;
+    
+    const currentLevelData = levels[currentLevel];
+    if (!currentLevelData) return;
+
+    currentLevelData.blocks.forEach((block, index) => {
+      const blockIndex = currentLevel * 10 + index; // Unique index across levels
+      
+      // Calculate viewport positions for collision detection
+      // Character viewport position: characterPosition%
+      // Block viewport position: block.position - (characterPosition * 2)%
+      const characterViewportPos = characterPosition;
+      const blockViewportPos = block.position - (characterPosition * 2);
+      
+      // Check if character is near block position and jumping (in viewport coordinates)
+      const distance = Math.abs(characterViewportPos - blockViewportPos);
+      if (distance <= 5 && !hitBlocks.has(blockIndex)) {
+        setHitBlocks((prev) => new Set(prev).add(blockIndex));
+        setCurrentEvent(block.event);
+        setShowEventModal(true);
+      }
+    });
+  }, [isJumping, characterPosition, currentLevel, hitBlocks]);
 
   const handleNextLevel = () => {
     if (currentLevel < levels.length - 1) {
@@ -74,6 +165,11 @@ const Game: React.FC = () => {
     } else {
       setShowLevelComplete(false);
     }
+  };
+
+  const handleCloseEventModal = () => {
+    setShowEventModal(false);
+    setCurrentEvent(null);
   };
 
   const level = levels[currentLevel];
@@ -103,22 +199,24 @@ const Game: React.FC = () => {
 
       <div className="absolute top-8 left-8 right-8 flex justify-between items-start z-20">
         <div
-          className="border-4 border-[#00FF41] bg-black/80 px-6 py-3"
+          className="px-6 py-3 bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
-            color: '#00FF41'
+            color: '#FFFFFF',
+            textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
           <div className="text-sm mb-2">LEVEL {level.id}</div>
           <div className="text-2xl">{level.name}</div>
-          <div className="text-xs mt-2 text-[#00FF41]/70">{level.year}</div>
+          <div className="text-xs mt-2 opacity-80">{level.year}</div>
         </div>
 
         <div
-          className="border-4 border-[#00FF41] bg-black/90 px-6 py-4 text-center"
+          className="px-6 py-4 text-center bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
-            color: '#00FF41'
+            color: '#FFFFFF',
+            textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
           <div className="text-xs mb-2">MISSION:</div>
@@ -126,10 +224,11 @@ const Game: React.FC = () => {
         </div>
 
         <div
-          className="border-4 border-[#00FF41] bg-black/80 px-6 py-3 text-right"
+          className="px-6 py-3 text-right bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
-            color: '#00FF41'
+            color: '#FFFFFF',
+            textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
           <div className="text-xs mb-2">PROGRESS</div>
@@ -137,11 +236,19 @@ const Game: React.FC = () => {
         </div>
       </div>
 
-      <div
-        className="absolute bottom-24 transition-all duration-100 z-30"
+      <motion.div
+        className="absolute bottom-24 z-30"
         style={{
           left: `${Math.min(characterPosition, 80)}%`,
-          transform: 'translateX(-50%)'
+        }}
+        animate={{
+          y: isJumping ? -80 : 0,
+          x: '-50%',
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 500,
+          damping: 30,
         }}
       >
         <img
@@ -150,46 +257,130 @@ const Game: React.FC = () => {
           className="h-32 w-auto pixelated"
           style={{
             imageRendering: 'pixelated',
-            filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))'
+            filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))',
+            transform: facingDirection === 'left' ? 'scaleX(-1)' : 'scaleX(1)',
           }}
         />
-      </div>
+      </motion.div>
+
+      {/* Render blocks */}
+      {level.blocks.map((block, index) => {
+        const blockIndex = currentLevel * 10 + index;
+        const isHit = hitBlocks.has(blockIndex);
+        
+        // Calculate block position accounting for background parallax
+        // Background moves at -characterPosition * 2%, so blocks should move at the same rate
+        // Block's viewport position = world position - parallax offset
+        const blockViewportPosition = block.position - (characterPosition * 2);
+        
+        return (
+          <div
+            key={`block-${currentLevel}-${index}`}
+            className="absolute z-25"
+            style={{
+              left: `${blockViewportPosition}%`,
+              bottom: '200px', // Higher up, requires jumping to reach
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <img
+              src={isHit ? brick : marioBlock}
+              alt={isHit ? 'Brick block' : 'Mario block'}
+              className="h-16 w-16 pixelated"
+              style={{
+                imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))'
+              }}
+            />
+          </div>
+        );
+      })}
 
       <div className="absolute bottom-16 left-0 right-0 h-16 bg-gradient-to-t from-[#4a2c2a] to-transparent z-10" />
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#4a2c2a] z-10 border-t-4 border-[#654321]" />
 
       <div
-        className="absolute top-32 right-8 z-20 text-right"
+        className="absolute top-32 right-8 z-20 text-right bg-black/30 backdrop-blur-sm rounded px-4 py-2"
         style={{
           fontFamily: '"Press Start 2P", cursive',
-          color: '#00FF41',
+          color: '#FFFFFF',
           fontSize: '12px',
-          textShadow: '0 0 10px #00FF41'
+          textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
         }}
       >
         <motion.div
           animate={{ opacity: [1, 0.5, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          USE ARROW KEYS OR A/D TO MOVE
+          USE ARROW KEYS OR WASD TO MOVE/JUMP
         </motion.div>
       </div>
 
       <AnimatePresence>
+        {showEventModal && currentEvent && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center bg-black/60 z-50 cursor-pointer"
+            onClick={handleCloseEventModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white/95 backdrop-blur-md px-12 py-8 max-w-2xl mx-4 cursor-pointer rounded-lg border-4 border-black shadow-2xl"
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#000000',
+              }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {currentEvent.type === 'text' && (
+                <div className="text-sm leading-relaxed mb-4">{currentEvent.content}</div>
+              )}
+              {currentEvent.type === 'image' && currentEvent.image && (
+                <div>
+                  <img src={currentEvent.image} alt="Event" className="max-w-full h-auto mb-4 rounded" />
+                  {currentEvent.content && (
+                    <div className="text-sm leading-relaxed">{currentEvent.content}</div>
+                  )}
+                </div>
+              )}
+              {currentEvent.type === 'video' && currentEvent.video && (
+                <div>
+                  <video src={currentEvent.video} controls className="max-w-full mb-4 rounded" />
+                  {currentEvent.content && (
+                    <div className="text-sm leading-relaxed">{currentEvent.content}</div>
+                  )}
+                </div>
+              )}
+              <div 
+                className="text-xs mt-4 opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
+                onClick={handleCloseEventModal}
+              >
+                CLICK TO CLOSE
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showLevelComplete && (
           <motion.div
-            className="absolute inset-0 flex items-center justify-center bg-black/80 z-40 cursor-pointer"
+            className="absolute inset-0 flex items-center justify-center bg-black/60 z-40 cursor-pointer"
             onClick={handleNextLevel}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="border-8 border-[#00FF41] bg-black px-12 py-8 text-center cursor-pointer hover:border-[#00FF88] transition-colors"
+              className="bg-white/95 backdrop-blur-md px-12 py-8 text-center cursor-pointer rounded-lg border-4 border-black shadow-2xl hover:scale-105 transition-transform"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                color: '#00FF41',
-                boxShadow: '0 0 30px #00FF41'
+                color: '#000000',
               }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -208,16 +399,15 @@ const Game: React.FC = () => {
 
       {currentLevel === levels.length - 1 && characterPosition >= 95 && (
         <motion.div
-          className="absolute inset-0 flex items-center justify-center bg-black/90 z-50"
+          className="absolute inset-0 flex items-center justify-center bg-black/70 z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <div
-            className="border-8 border-[#FFD700] bg-black px-16 py-12 text-center"
+            className="bg-yellow-400/95 backdrop-blur-md px-16 py-12 text-center rounded-lg border-4 border-black shadow-2xl"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              boxShadow: '0 0 50px #FFD700'
+              color: '#000000',
             }}
           >
             <motion.div

@@ -2,6 +2,7 @@
 
 A retro-gaming themed personal introduction website with parallax animations and interactive pixel effects.
 
+![](./screenshot.jpg)
 ## Features
 
 - **Lightweight Parallax Backgrounds**: CSS-based animated backgrounds with mouse parallax effects
