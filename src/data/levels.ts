@@ -1,4 +1,4 @@
-import beijingBg from '../assets/backgrounds/Beijing.jpg';
+import beijingBg from '../assets/backgrounds/Beijing.png';
 import stanfordBg from '../assets/backgrounds/Stanford.jpg';
 import kidImage from '../assets/pic/kid.jpg';
 import kidImage1 from '../assets/pic/kid1.jpg';
@@ -81,7 +81,7 @@ export const levels: Level[] = [
         },
       },
       {
-        position: 75,
+        position: 120,
         event: {
           type: 'text',
           content:

@@ -106,12 +106,21 @@ const Game: React.FC = () => {
     }
   }, [currentLevel]);
 
+  // Level complete when all blocks are discovered
   useEffect(() => {
-    if (characterPosition >= 95 && !levelCompleteTriggered.current) {
+    const currentLevelData = levels[currentLevel];
+    if (!currentLevelData) return;
+    
+    const totalBlocks = currentLevelData.blocks.length;
+    const discoveredBlocks = Array.from(hitBlocks).filter(
+      (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
+    ).length;
+    
+    if (totalBlocks > 0 && discoveredBlocks === totalBlocks && !levelCompleteTriggered.current) {
       levelCompleteTriggered.current = true;
       setShowLevelComplete(true);
     }
-  }, [characterPosition, currentLevel]);
+  }, [hitBlocks, currentLevel]);
 
   // Check for block collisions
   useEffect(() => {
@@ -125,9 +134,9 @@ const Game: React.FC = () => {
       
       // Calculate viewport positions for collision detection
       // Character viewport position: characterPosition%
-      // Block viewport position: block.position - (characterPosition * 2)%
+      // Block viewport position: block.position - characterPosition (1:1 movement)
       const characterViewportPos = characterPosition;
-      const blockViewportPos = block.position - (characterPosition * 2);
+      const blockViewportPos = block.position - characterPosition;
       
       // Check if character is near block position and jumping (in viewport coordinates)
       const distance = Math.abs(characterViewportPos - blockViewportPos);
@@ -169,9 +178,9 @@ const Game: React.FC = () => {
         className="absolute inset-0"
         style={{
           backgroundImage: `url(${level.background})`,
-          backgroundRepeat: 'repeat-x',
+          backgroundRepeat: 'no-repeat',
           backgroundSize: 'auto 100%',
-          backgroundPosition: `${-characterPosition * 2}% center`,
+          backgroundPosition: `${characterPosition}% center`,
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -214,8 +223,17 @@ const Game: React.FC = () => {
             textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
-          <div className="text-xs mb-2">PROGRESS</div>
-          <div className="text-lg">{Math.round(characterPosition)}%</div>
+          <div className="text-xs mb-2">BLOCKS</div>
+          <div className="text-lg">
+            {(() => {
+              const totalBlocks = level.blocks.length;
+              const discoveredBlocks = Array.from(hitBlocks).filter(
+                (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
+              ).length;
+              const blocksLeft = totalBlocks - discoveredBlocks;
+              return `${blocksLeft}/${totalBlocks} LEFT`;
+            })()}
+          </div>
         </div>
       </div>
 
@@ -251,10 +269,9 @@ const Game: React.FC = () => {
         const blockIndex = currentLevel * 10 + index;
         const isHit = hitBlocks.has(blockIndex);
         
-        // Calculate block position accounting for background parallax
-        // Background moves at -characterPosition * 2%, so blocks should move at the same rate
-        // Block's viewport position = world position - parallax offset
-        const blockViewportPosition = block.position - (characterPosition * 2);
+        // Calculate block position - blocks are fixed in world coordinates and move with background
+        // Background and character move 1:1, so block viewport position = world position - character position
+        const blockViewportPosition = block.position - characterPosition;
         
         return (
           <div
@@ -405,7 +422,17 @@ const Game: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {currentLevel === levels.length - 1 && characterPosition >= 95 && (
+      {(() => {
+        const isLastLevel = currentLevel === levels.length - 1;
+        if (!isLastLevel) return false;
+        const currentLevelData = levels[currentLevel];
+        if (!currentLevelData) return false;
+        const totalBlocks = currentLevelData.blocks.length;
+        const discoveredBlocks = Array.from(hitBlocks).filter(
+          (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
+        ).length;
+        return totalBlocks > 0 && discoveredBlocks === totalBlocks;
+      })() && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center bg-black/70 z-50"
           initial={{ opacity: 0 }}
