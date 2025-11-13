@@ -1,80 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import beijingBg from '../assets/backgrounds/Beijing.jpg';
-import stanfordBg from '../assets/backgrounds/Stanford.jpg';
 import walkingGif from '../assets/characters/walking.gif';
 import marioBlock from '../assets/items/mario-block.gif';
 import brick from '../assets/items/brick.png';
-
-type Event = {
-  type: 'text' | 'image' | 'video';
-  content: string;
-  image?: string;
-  video?: string;
-};
-
-type Block = {
-  position: number; // characterPosition percentage
-  event: Event;
-};
-
-type Level = {
-  id: number;
-  name: string;
-  background: string;
-  mission: string;
-  year: string;
-  blocks: Block[];
-};
-
-const levels: Level[] = [
-  {
-    id: 1,
-    name: 'BEIJING',
-    background: beijingBg,
-    mission: 'I was born in Beijing, China',
-    year: '1995',
-    blocks: [
-      {
-        position: 60,
-        event: {
-          type: 'text',
-          content: 'Welcome to Beijing! This is where my journey began.'
-        }
-      },
-      {
-        position: 180,
-        event: {
-          type: 'text',
-          content: 'Growing up in Beijing shaped my perspective on technology and innovation.'
-        }
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'STANFORD',
-    background: stanfordBg,
-    mission: 'Mastered computer science',
-    year: '2015',
-    blocks: [
-      {
-        position: 35,
-        event: {
-          type: 'text',
-          content: 'Stanford University - where I deepened my understanding of computer science.'
-        }
-      },
-      {
-        position: 75,
-        event: {
-          type: 'text',
-          content: 'The knowledge gained here became the foundation of my career.'
-        }
-      }
-    ]
-  }
-];
+import { levels, getAllEventImages, type Event } from '../data/levels';
 
 const Game: React.FC = () => {
   const [currentLevel, setCurrentLevel] = useState(0);
@@ -86,29 +15,77 @@ const Game: React.FC = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const levelCompleteTriggered = useRef(false);
+  const keysPressed = useRef<Set<string>>(new Set());
+  const movementIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Preload all event images
+  useEffect(() => {
+    const imagesToPreload = getAllEventImages();
+    imagesToPreload.forEach((imageSrc) => {
+      const img = new Image();
+      img.src = imageSrc;
+    });
+  }, []);
 
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
+
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
         setFacingDirection('right');
-        setCharacterPosition((prev) => Math.min(prev + 3, 100));
+        keysPressed.current.add('right');
       }
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
         setFacingDirection('left');
-        setCharacterPosition((prev) => Math.max(prev - 3, 0));
+        keysPressed.current.add('left');
       }
       if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && !isJumping) {
+        e.preventDefault();
         setIsJumping(true);
         setTimeout(() => {
           setIsJumping(false);
         }, 600);
       }
+
+      // Start continuous movement if not already running
+      if (!movementIntervalRef.current && (keysPressed.current.has('left') || keysPressed.current.has('right'))) {
+        movementIntervalRef.current = setInterval(() => {
+          if (keysPressed.current.has('right')) {
+            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+          }
+          if (keysPressed.current.has('left')) {
+            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+          }
+        }, 16); // ~60fps for smooth movement
+      }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keysPressed.current.delete('right');
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keysPressed.current.delete('left');
+      }
+
+      // Stop movement interval if no movement keys are pressed
+      if (movementIntervalRef.current && keysPressed.current.size === 0) {
+        clearInterval(movementIntervalRef.current);
+        movementIntervalRef.current = null;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      if (movementIntervalRef.current) {
+        clearInterval(movementIntervalRef.current);
+        movementIntervalRef.current = null;
+      }
     };
   }, [isJumping]);
 
@@ -121,6 +98,12 @@ const Game: React.FC = () => {
     setHitBlocks(new Set());
     setShowEventModal(false);
     setCurrentEvent(null);
+    // Clear movement state
+    keysPressed.current.clear();
+    if (movementIntervalRef.current) {
+      clearInterval(movementIntervalRef.current);
+      movementIntervalRef.current = null;
+    }
   }, [currentLevel]);
 
   useEffect(() => {
@@ -326,7 +309,7 @@ const Game: React.FC = () => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white/95 backdrop-blur-md px-12 py-8 max-w-2xl mx-4 cursor-pointer rounded-lg border-4 border-black shadow-2xl"
+              className="bg-white/95 backdrop-blur-md px-12 py-8 max-w-4xl max-h-[90vh] mx-4 cursor-pointer rounded-lg border-4 border-black shadow-2xl overflow-y-auto"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#000000',
@@ -338,11 +321,36 @@ const Game: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {currentEvent.type === 'text' && (
-                <div className="text-sm leading-relaxed mb-4">{currentEvent.content}</div>
+                <>
+                  {currentEvent.content && (
+                    <div className="text-sm leading-relaxed mb-4">{currentEvent.content}</div>
+                  )}
+                  {currentEvent.images && currentEvent.images.length > 0 && (
+                    <div className={`grid gap-4 mb-4 ${currentEvent.images.length === 1 ? 'grid-cols-1' : currentEvent.images.length === 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                      {currentEvent.images.map((imageSrc, index) => (
+                        <img 
+                          key={index}
+                          src={imageSrc} 
+                          alt={`Event ${index + 1}`} 
+                          className="max-w-full h-auto rounded border-2 border-black shadow-lg" 
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
-              {currentEvent.type === 'image' && currentEvent.image && (
+              {currentEvent.type === 'image' && currentEvent.images && currentEvent.images.length > 0 && (
                 <div>
-                  <img src={currentEvent.image} alt="Event" className="max-w-full h-auto mb-4 rounded" />
+                  <div className={`grid gap-4 mb-4 ${currentEvent.images.length === 1 ? 'grid-cols-1' : currentEvent.images.length === 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                    {currentEvent.images.map((imageSrc, index) => (
+                      <img 
+                        key={index}
+                        src={imageSrc} 
+                        alt={`Event ${index + 1}`} 
+                        className="max-w-full h-auto rounded border-2 border-black shadow-lg" 
+                      />
+                    ))}
+                  </div>
                   {currentEvent.content && (
                     <div className="text-sm leading-relaxed">{currentEvent.content}</div>
                   )}
