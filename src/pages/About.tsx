@@ -4,6 +4,7 @@ import airbnbLogo from '../assets/projects/Airbnb.png';
 import mcgillLogo from '../assets/projects/McGill.png';
 import tableauLogo from '../assets/projects/Tableau.png';
 import stanfordLogo from '../assets/projects/Stanford.png';
+import presenceLogo from '../assets/projects/Presence.png';
 
 const About: React.FC = () => {
   return (
@@ -46,6 +47,17 @@ const About: React.FC = () => {
                 }}
               >
                 <div className="flex items-start gap-4 mb-3">
+                <img
+                  src={presenceLogo}
+                  alt="Presence logo"
+                  className="pixelated flex-shrink-0"
+                  width={72}
+                  height={60}
+                  style={{
+                    imageRendering: 'pixelated',
+                    filter: 'drop-shadow(0 0 5px #FF6B35)',
+                  }}
+                />
                   <div className="flex-1">
                     <h3 className="text-lg md:text-xl mb-1">HEAD OF PRODUCT</h3>
                     <p className="text-xs opacity-80">Presence (VC-backed startup)</p>
