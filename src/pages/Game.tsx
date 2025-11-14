@@ -296,6 +296,34 @@ const Game: React.FC = () => {
         );
       })}
 
+      {/* Render NPCs */}
+      {level.npcs && level.npcs.map((npc, index) => {
+        // Calculate NPC viewport position - NPCs are fixed in world coordinates and move with background
+        const npcViewportPosition = npc.position - characterPosition;
+        
+        return (
+          <div
+            key={`npc-${currentLevel}-${index}`}
+            className="absolute bottom-24 z-30"
+            style={{
+              left: `${npcViewportPosition}%`,
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <img
+              src={npc.sprite}
+              alt={`NPC ${index + 1}`}
+              className={`${npc.size || 'h-32'} w-auto pixelated`}
+              style={{
+                imageRendering: 'pixelated',
+                filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))',
+                transform: (npc.facing || 'right') === 'left' ? 'scaleX(-1)' : 'scaleX(1)',
+              }}
+            />
+          </div>
+        );
+      })}
+
       <div className="absolute bottom-16 left-0 right-0 h-16 bg-gradient-to-t from-[#4a2c2a] to-transparent z-10" />
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#4a2c2a] z-10 border-t-4 border-[#654321]" />
 
