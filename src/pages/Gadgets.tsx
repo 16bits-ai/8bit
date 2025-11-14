@@ -8,6 +8,8 @@ import Keyboard from '../assets/gadgets/Keyboard.png';
 import Soda from '../assets/gadgets/Soda.png';
 import OpenSource from '../assets/gadgets/OpenSource.png';
 import Computer from '../assets/gadgets/Computer.png';
+import Luggage from '../assets/gadgets/Luggage.png';
+import EdTech from '../assets/gadgets/EdTech.png';
 
 // Placeholder data structure for gadgets
 // You can replace these with actual image paths when you generate them
@@ -27,12 +29,14 @@ const Gadgets: React.FC = () => {
   // Placeholder gadgets - replace with your actual images
   const gadgets: Gadget[] = [
     { id: 6, name: 'Computer', image: Computer, description: 'I love to code' },
-    { id: 3, name: 'Keyboard', image: Keyboard, description: 'I love to play music' },
+    { id: 3, name: 'MIDI Keyboard', image: Keyboard, description: 'I love music composition. I can contribute as a guitarist, pianist, or violinist.' },
 
-    { id: 1, name: 'Calculator', image: Calculator, description: 'I use this calculator to do a lot of math.' },
-    { id: 2, name: 'Camera', image: Camera, description: 'I enjoy doing photography.' },
-    { id: 4, name: 'Blue Soda Can', image: Soda, description: 'I love to make all sorts of drinks' },
-    { id: 5, name: 'Open Source', image: OpenSource, description: 'I love to contribute to open source projects' },
+    { id: 1, name: 'Calculator', image: Calculator, description: 'I use this calculator to do a lot of math. I am learning ML and AI, would love to apply them sometimes.' },
+    { id: 2, name: 'Camera', image: Camera, description: 'I have been doing photography for a while now.' },
+    { id: 4, name: 'Blue Soda Can', image: Soda, description: 'I love to make all sorts of drinks. I am a big fan of High Ball.' },
+    { id: 5, name: 'Open Source', image: OpenSource, description: 'I love to contribute to open source projects. I have maintained projects that are over 20k stars and I have 3x Starstruck achievement on GitHub.' },
+    { id: 7, name: 'Luggage', image: Luggage, description: 'I love to travel. My favorite travel destination is Japan, Italy, Czech and the USA.' },
+    { id: 8, name: 'Education Machine', image: EdTech, description: 'I have been thinking of ways to build amazing teaching machines, my major focus is design and visualizations.' },
   ];
 
 
@@ -90,7 +94,7 @@ const Gadgets: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 bg-black flex items-center justify-center">
+                    <div className="w-16 h-16 flex items-center justify-center">
                       <img
                         src={gadget.image}
                         alt={gadget.name}
@@ -169,7 +173,7 @@ const Gadgets: React.FC = () => {
               </motion.p>
 
               <motion.div
-                className="bg-black/80 p-6"
+                className="p-6"
                 animate={{
                   y: [0, -30, 0],
                   rotate: [0, 2, -2, 0],

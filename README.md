@@ -47,3 +47,6 @@ Every world has its own Mario Kart color scheme & pattern:
 Collect blocks, unlock life events, and enjoy this geek-powered, Super Mario-themed adventure through my developer career!
 
 _Ready? Press Start!_
+
+## TODO
+- [ ] For mobile devices, use a library instead of naive checks

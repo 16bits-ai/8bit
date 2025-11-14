@@ -9,7 +9,7 @@ import carlTechReviewsLogo from '../assets/projects/CarlTechReview.png';
 const Projects: React.FC = () => {
   const projects = [
     { id: 1, logo: patternizeLogo, title: 'Patternize.io', description: 'A project that helps people visualize Computer Science concepts', url: 'https://patternize.github.io/' },
-    { id: 2, logo: carlTechReviewsLogo, title: 'Carl Tech Reviews', description: 'A blog about technology and software development', url: 'https://carlrocks.com' },
+    { id: 2, logo: carlTechReviewsLogo, title: 'Carl Tech Reviews', description: 'A blog about technology and software development', url: 'https://gazcn007.github.io/' },
     { id: 3, logo: NativePod, title: 'NativePod', description: 'Translate podcasts into other languages', url: 'https://nativepod.co/' },
     { id: 4, logo: OOTD, title: 'OOTD.ai', description: 'Your outfit Stylist that gives you fashion advice', url: 'https://apps.apple.com/us/app/ootd-ai/id6504292959' },
   ];

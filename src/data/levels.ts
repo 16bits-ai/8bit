@@ -5,15 +5,44 @@ import vancouverBg from '../assets/backgrounds/Vancouver.jpg';
 
 // Level 1
 import kidImage from '../assets/pic/kid.jpg';
-import kidImage1 from '../assets/pic/kid1.jpg';
+import kidImage2 from '../assets/pic/kid2.jpg';
+import kidImage3 from '../assets/pic/kid3.jpg';
+import kidImage4 from '../assets/pic/kid4.jpg';
 import kidViolin from '../assets/pic/kid-violin.jpg';
+import kidViolin2 from '../assets/pic/kid-violin2.jpg';
+import kidUSA from '../assets/pic/kid-usa.jpg';
+import kidUSA2 from '../assets/pic/kid-usa2.png';
+import Cousin from '../assets/pic/Cousins.jpg';
+import Cousin2 from '../assets/pic/Cousins2.jpg';
 
 // Level 2
+import Canada from '../assets/pic/Canada.jpg';
+import Canada2 from '../assets/pic/Canada2.jpg';
+import Guitar from '../assets/pic/Guitar.jpg';
+import Guitar2 from '../assets/pic/Guitar2.jpg';
+import Guitar3 from '../assets/pic/Guitar3.jpg';
+import guitarVideo from '../assets/video/guitar.mov';
+import guitarVideo2 from '../assets/video/guitar2.mov';
+import OpenSource from '../assets/pic/OpenSource.jpg';
+import OpenSource2 from '../assets/pic/OpenSource2.jpg';
+import OpenSource3 from '../assets/pic/OpenSource3.jpg';
 
 // Level 3
 import TableauPat from '../assets/pic/TableauPat.jpg';
 import TableauPublic from '../assets/pic/TableauPublic.jpg';
 import TableauTeam from '../assets/pic/TableauTeam.jpeg';
+import Marriage from '../assets/pic/Marriage.jpg';
+import Marriage2 from '../assets/pic/Marriage2.jpg';
+import AirbnbLottie from '../assets/pic/AirbnbLottie.gif';
+
+// level 4
+import Stanford from '../assets/pic/Stanford.jpg';
+import Stanford2 from '../assets/pic/Stanford2.jpg';
+import Stanford3 from '../assets/pic/Stanford3.jpeg';
+import Stanford4 from '../assets/pic/Stanford4.jpeg';
+import StanfordCenter from '../assets/pic/StanfordCenter.jpg';
+import StanfordCenter2 from '../assets/pic/StanfordCenter2.jpg';
+import StanfordCenter3 from '../assets/pic/StanfordCenter3.jpg';
 
 // npcs
 import solaire from '../assets/characters/npcs/solaire.gif';
@@ -29,6 +58,7 @@ import pyro from '../assets/characters/npcs/pyro.gif';
 import peach from '../assets/characters/peach.gif';
 import ninja from '../assets/characters/npcs/ninja.gif';
 import ironman from '../assets/characters/npcs/ironman.gif';
+import guitar from '../assets/characters/npcs/guitar.gif';
 
 export type Event = {
   type: 'text' | 'image' | 'video';
@@ -47,6 +77,7 @@ export type NPC = {
   sprite: string; // path to NPC sprite/gif
   facing?: 'left' | 'right'; // direction NPC is facing (default: 'right')
   size?: string; // Tailwind height class (e.g., 'h-24', 'h-32', 'h-40') - default: 'h-32'
+  event?: Event; // optional event that triggers when character gets close
 };
 
 export type Level = {
@@ -68,6 +99,13 @@ export const getAllEventImages = (): string[] => {
         images.push(...block.event.images);
       }
     });
+    if (level.npcs) {
+      level.npcs.forEach((npc) => {
+        if (npc.event?.images) {
+          images.push(...npc.event.images);
+        }
+      });
+    }
   });
   return images;
 };
@@ -78,14 +116,15 @@ export const levels: Level[] = [
     name: 'BEIJING',
     background: beijingBg,
     mission: 'I was born in Beijing, China',
-    year: '1995',
+    year: '1994',
     blocks: [
       {
         position: 60,
         event: {
           type: 'text',
-          content: 'Beijing, China -This is where my journey began.',
-          images: [kidImage, kidImage1],
+          content:
+            'Beijing, China, December 22, 1994 - this is where my journey began.',
+          images: [kidImage, kidImage2, kidImage3, kidImage4],
         },
       },
       {
@@ -93,8 +132,16 @@ export const levels: Level[] = [
         event: {
           type: 'text',
           content:
-            'I was the only child in my family, my parents devoted all their love and resources to me and my education.',
-          images: [kidViolin],
+            'As an only child, my parents put a strong focus on supporting my education and development.',
+          images: [kidViolin, kidViolin2, kidUSA, kidUSA2],
+        },
+      },
+      {
+        position: 160,
+        event: {
+          type: 'text',
+          content: 'I have a close relationship with my cousins growing up.',
+          images: [Cousin, Cousin2],
         },
       },
     ],
@@ -103,14 +150,48 @@ export const levels: Level[] = [
     id: 2,
     name: 'MONTREAL',
     background: montrealBg,
-    mission: 'I was born in Montreal, Canada',
-    year: '1995',
+    mission: 'I moved to Canada with my family in 2008',
+    year: '2008',
     blocks: [
       {
-        position: 85,
+        position: 60,
         event: {
           type: 'text',
-          content: 'Montreal, Canada - This is where I grew up.',
+          content:
+            'It was a big change for me to move to Canada, especially the weather.',
+          images: [Canada, Canada2],
+        },
+      },
+      {
+        position: 120,
+        event: {
+          type: 'text',
+          content:
+            'Starting college, my passion was mostly focused on music, I started with a Music Major. However, my love for engineering started when I wanted to build my own guitar.',
+          images: [guitarVideo2],
+        },
+      },
+      {
+        position: 160,
+        event: {
+          type: 'text',
+          content:
+            'During college, I have been interested in the opensource community and the power of community.',
+          images: [OpenSource, OpenSource2, OpenSource3],
+        },
+      },
+    ],
+    npcs: [
+      {
+        position: 100,
+        sprite: guitar,
+        facing: 'right',
+        size: 'h-24',
+        event: {
+          type: 'text',
+          content:
+            'Music was my escape from the loneliness and language barrier. I rebuilt my confidence through music.',
+          images: [Guitar, Guitar2, Guitar3, guitarVideo],
         },
       },
     ],
@@ -131,13 +212,27 @@ export const levels: Level[] = [
           images: [TableauPat, TableauPublic, TableauTeam],
         },
       },
+      {
+        position: 160,
+        event: {
+          type: 'text',
+          content:
+            'Later I joined Airbnb, to work on Frontend technologies such as Lottie animations and VISX',
+          images: [AirbnbLottie],
+        },
+      },
     ],
     npcs: [
       {
-        position: 160,
+        position: 140,
         sprite: peach,
         facing: 'right',
         size: 'h-24',
+        event: {
+          type: 'text',
+          content: 'I got married to my wife, Alice, in 2022.',
+          images: [Marriage2, Marriage],
+        },
       },
     ],
   },
@@ -152,8 +247,14 @@ export const levels: Level[] = [
         position: 32,
         event: {
           type: 'text',
-          content:
-            'Stanford University - where I deepened my understanding of computer science.',
+          content: 'I have been enjoying my first 2 months here at Stanford.',
+          images: [
+            StanfordCenter,
+            StanfordCenter2,
+            StanfordCenter3,
+            Stanford,
+            Stanford2,
+          ],
         },
       },
       {
@@ -161,7 +262,8 @@ export const levels: Level[] = [
         event: {
           type: 'text',
           content:
-            'The knowledge gained here became the foundation of my career.',
+            'I love my LDT cohort, you folks are like my own Avengers team',
+          images: [Stanford3, Stanford4],
         },
       },
     ],
@@ -238,6 +340,10 @@ export const levels: Level[] = [
         sprite: ironman,
         facing: 'right',
         size: 'h-28',
+        event: {
+          type: 'text',
+          content: 'I would love to see what comes out of this journey.',
+        },
       },
     ],
   },

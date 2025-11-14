@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
 import walkingGif from '../assets/characters/walking.gif';
 import marioBlock from '../assets/items/mario-block.gif';
 import brick from '../assets/items/brick.png';
@@ -23,18 +24,51 @@ const Game: React.FC = () => {
   const [isJumping, setIsJumping] = useState(false);
   const [facingDirection, setFacingDirection] = useState<'left' | 'right'>('right');
   const [hitBlocks, setHitBlocks] = useState<Set<number>>(new Set());
+  const [hitNPCs, setHitNPCs] = useState<Set<number>>(new Set());
   const [showEventModal, setShowEventModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const levelCompleteTriggered = useRef(false);
   const keysPressed = useRef<Set<string>>(new Set());
   const movementIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Preload all event images
+  // Helper function to check if a file is a video
+  const isVideoFile = (src: string): boolean => {
+    const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.mkv'];
+    return videoExtensions.some(ext => src.toLowerCase().endsWith(ext));
+  };
+
+  // Detect mobile/tablet devices
   useEffect(() => {
-    const imagesToPreload = getAllEventImages();
-    imagesToPreload.forEach((imageSrc) => {
-      const img = new Image();
-      img.src = imageSrc;
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isIPad = /ipad/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isMobileDevice = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 1024;
+      
+      // Consider it mobile if it's a touch device (iPad, mobile) OR small screen
+      setIsMobile(isIPad || isMobileDevice || (isTouchDevice && isSmallScreen));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Preload all event images and videos
+  useEffect(() => {
+    const mediaToPreload = getAllEventImages();
+    mediaToPreload.forEach((mediaSrc) => {
+      if (isVideoFile(mediaSrc)) {
+        const video = document.createElement('video');
+        video.src = mediaSrc;
+        video.preload = 'auto';
+      } else {
+        const img = new Image();
+        img.src = mediaSrc;
+      }
     });
   }, []);
 
@@ -112,6 +146,7 @@ const Game: React.FC = () => {
     setIsJumping(false);
     setFacingDirection('right');
     setHitBlocks(new Set());
+    setHitNPCs(new Set());
     setShowEventModal(false);
     setCurrentEvent(null);
     // Clear movement state
@@ -122,7 +157,7 @@ const Game: React.FC = () => {
     }
   }, [currentLevel]);
 
-  // Level complete when all blocks are discovered
+  // Level complete when all blocks and NPCs with events are discovered
   useEffect(() => {
     const currentLevelData = levels[currentLevel];
     if (!currentLevelData) return;
@@ -132,7 +167,16 @@ const Game: React.FC = () => {
       (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
     ).length;
     
-    if (totalBlocks > 0 && discoveredBlocks === totalBlocks && !levelCompleteTriggered.current) {
+    const npcsWithEvents = currentLevelData.npcs?.filter(npc => npc.event) || [];
+    const totalNPCs = npcsWithEvents.length;
+    const discoveredNPCs = Array.from(hitNPCs).filter(
+      (npcIndex) => Math.floor(npcIndex / 10) === currentLevel
+    ).length;
+    
+    const totalRequirements = totalBlocks + totalNPCs;
+    const discoveredRequirements = discoveredBlocks + discoveredNPCs;
+    
+    if (totalRequirements > 0 && discoveredRequirements === totalRequirements && !levelCompleteTriggered.current) {
       levelCompleteTriggered.current = true;
       setShowLevelComplete(true);
       
@@ -141,7 +185,7 @@ const Game: React.FC = () => {
         localStorage.removeItem('gameCurrentLevel');
       }
     }
-  }, [hitBlocks, currentLevel]);
+  }, [hitBlocks, hitNPCs, currentLevel]);
 
   // Check for block collisions
   useEffect(() => {
@@ -164,10 +208,38 @@ const Game: React.FC = () => {
       if (distance <= 5 && !hitBlocks.has(blockIndex)) {
         setHitBlocks((prev) => new Set(prev).add(blockIndex));
         setCurrentEvent(block.event);
+        setCurrentImageIndex(0);
         setShowEventModal(true);
       }
     });
   }, [isJumping, characterPosition, currentLevel, hitBlocks]);
+
+  // Check for NPC collisions (triggers when character gets close, no jump required)
+  useEffect(() => {
+    const currentLevelData = levels[currentLevel];
+    if (!currentLevelData || !currentLevelData.npcs) return;
+
+    currentLevelData.npcs.forEach((npc, index) => {
+      // Only check NPCs that have events
+      if (!npc.event) return;
+      
+      const npcIndex = currentLevel * 10 + index; // Unique index across levels
+      
+      // Calculate viewport positions for collision detection
+      const characterViewportPos = characterPosition;
+      const npcViewportPos = npc.position - characterPosition;
+      
+      // Check if character is close to NPC (in viewport coordinates)
+      // Using a slightly larger distance than blocks since NPCs are on the ground
+      const distance = Math.abs(characterViewportPos - npcViewportPos);
+      if (distance <= 8 && !hitNPCs.has(npcIndex)) {
+        setHitNPCs((prev) => new Set(prev).add(npcIndex));
+        setCurrentEvent(npc.event);
+        setCurrentImageIndex(0);
+        setShowEventModal(true);
+      }
+    });
+  }, [characterPosition, currentLevel, hitNPCs]);
 
   const handleNextLevel = () => {
     if (currentLevel < levels.length - 1) {
@@ -185,6 +257,74 @@ const Game: React.FC = () => {
   const handleCloseEventModal = () => {
     setShowEventModal(false);
     setCurrentEvent(null);
+    setCurrentImageIndex(0);
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentEvent?.images && currentEvent.images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % currentEvent.images!.length);
+    }
+  };
+
+  // Mobile button handlers
+  const handleMoveLeft = () => {
+    setFacingDirection('left');
+    if (!keysPressed.current.has('left')) {
+      keysPressed.current.add('left');
+      if (!movementIntervalRef.current) {
+        movementIntervalRef.current = setInterval(() => {
+          if (keysPressed.current.has('right')) {
+            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+          }
+          if (keysPressed.current.has('left')) {
+            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+          }
+        }, 16);
+      }
+    }
+  };
+
+  const handleMoveRight = () => {
+    setFacingDirection('right');
+    if (!keysPressed.current.has('right')) {
+      keysPressed.current.add('right');
+      if (!movementIntervalRef.current) {
+        movementIntervalRef.current = setInterval(() => {
+          if (keysPressed.current.has('right')) {
+            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+          }
+          if (keysPressed.current.has('left')) {
+            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+          }
+        }, 16);
+      }
+    }
+  };
+
+  const handleStopLeft = () => {
+    keysPressed.current.delete('left');
+    if (keysPressed.current.size === 0 && movementIntervalRef.current) {
+      clearInterval(movementIntervalRef.current);
+      movementIntervalRef.current = null;
+    }
+  };
+
+  const handleStopRight = () => {
+    keysPressed.current.delete('right');
+    if (keysPressed.current.size === 0 && movementIntervalRef.current) {
+      clearInterval(movementIntervalRef.current);
+      movementIntervalRef.current = null;
+    }
+  };
+
+  const handleJump = () => {
+    if (!isJumping) {
+      setIsJumping(true);
+      setTimeout(() => {
+        setIsJumping(false);
+      }, 600);
+    }
   };
 
   const level = levels[currentLevel];
@@ -246,15 +386,22 @@ const Game: React.FC = () => {
             textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
-          <div className="text-xs mb-2">BLOCKS</div>
+          <div className="text-xs mb-2">MISSING EVENTS</div>
           <div className="text-lg">
             {(() => {
               const totalBlocks = level.blocks.length;
               const discoveredBlocks = Array.from(hitBlocks).filter(
                 (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
               ).length;
-              const blocksLeft = totalBlocks - discoveredBlocks;
-              return `${blocksLeft}/${totalBlocks} LEFT`;
+              const npcsWithEvents = level.npcs?.filter(npc => npc.event) || [];
+              const totalNPCs = npcsWithEvents.length;
+              const discoveredNPCs = Array.from(hitNPCs).filter(
+                (npcIndex) => Math.floor(npcIndex / 10) === currentLevel
+              ).length;
+              const totalRequirements = totalBlocks + totalNPCs;
+              const discoveredRequirements = discoveredBlocks + discoveredNPCs;
+              const requirementsLeft = totalRequirements - discoveredRequirements;
+              return `${requirementsLeft}/${totalRequirements} LEFT`;
             })()}
           </div>
         </div>
@@ -350,22 +497,80 @@ const Game: React.FC = () => {
       <div className="absolute bottom-16 left-0 right-0 h-16 bg-gradient-to-t from-[#4a2c2a] to-transparent z-10" />
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#4a2c2a] z-10 border-t-4 border-[#654321]" />
 
-      <div
-        className="absolute top-32 right-8 z-20 text-right bg-black/30 backdrop-blur-sm rounded px-4 py-2"
-        style={{
-          fontFamily: '"Press Start 2P", cursive',
-          color: '#FFFFFF',
-          fontSize: '12px',
-          textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
-        }}
-      >
-        <motion.div
-          animate={{ opacity: [1, 0.5, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+      {isMobile ? (
+        <div className="absolute top-40 left-4 right-4 z-30 flex items-start justify-between pointer-events-none">
+          {/* Left/Right Movement Buttons */}
+          <div className="flex gap-4 pointer-events-auto">
+            <motion.button
+              onTouchStart={handleMoveLeft}
+              onTouchEnd={handleStopLeft}
+              onMouseDown={handleMoveLeft}
+              onMouseUp={handleStopLeft}
+              onMouseLeave={handleStopLeft}
+              className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 touch-manipulation"
+              whileTap={{ scale: 0.9 }}
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#FFFFFF',
+                textShadow: '2px 2px 0px #000000',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+            >
+              <ArrowLeft size={36} />
+            </motion.button>
+            <motion.button
+              onTouchStart={handleMoveRight}
+              onTouchEnd={handleStopRight}
+              onMouseDown={handleMoveRight}
+              onMouseUp={handleStopRight}
+              onMouseLeave={handleStopRight}
+              className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 touch-manipulation"
+              whileTap={{ scale: 0.9 }}
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#FFFFFF',
+                textShadow: '2px 2px 0px #000000',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+            >
+              <ArrowRight size={36} />
+            </motion.button>
+          </div>
+
+          {/* Jump Button */}
+          <motion.button
+            onTouchStart={handleJump}
+            onMouseDown={handleJump}
+            className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 pointer-events-auto touch-manipulation"
+            whileTap={{ scale: 0.9 }}
+            style={{
+              fontFamily: '"Press Start 2P", cursive',
+              color: '#FFFFFF',
+              textShadow: '2px 2px 0px #000000',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+          >
+            <ArrowUp size={36} />
+          </motion.button>
+        </div>
+      ) : (
+        <div
+          className="absolute top-32 right-8 z-20 text-right bg-black/30 backdrop-blur-sm rounded px-4 py-2"
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color: '#FFFFFF',
+            fontSize: '12px',
+            textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
+          }}
         >
-          USE ARROW KEYS OR WASD TO MOVE/JUMP
-        </motion.div>
-      </div>
+          <motion.div
+            animate={{ opacity: [1, 0.5, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            USE ARROW KEYS TO MOVE/JUMP
+          </motion.div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showEventModal && currentEvent && (
@@ -394,30 +599,106 @@ const Game: React.FC = () => {
                     <div className="text-sm leading-relaxed mb-4">{currentEvent.content}</div>
                   )}
                   {currentEvent.images && currentEvent.images.length > 0 && (
-                    <div className={`grid gap-4 mb-4 ${currentEvent.images.length === 1 ? 'grid-cols-1' : currentEvent.images.length === 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
-                      {currentEvent.images.map((imageSrc, index) => (
-                        <img 
-                          key={index}
-                          src={imageSrc} 
-                          alt={`Event ${index + 1}`} 
-                          className="max-w-full h-auto rounded border-2 border-black shadow-lg" 
-                        />
-                      ))}
+                    <div className="mb-4 relative">
+                      {currentEvent.images.length > 1 ? (
+                        <>
+                          {isVideoFile(currentEvent.images[currentImageIndex]) ? (
+                            <motion.video
+                              key={currentImageIndex}
+                              src={currentEvent.images[currentImageIndex]}
+                              controls
+                              className="max-w-full h-auto rounded border-2 border-black shadow-lg cursor-pointer mx-auto"
+                              onClick={handleNextImage}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          ) : (
+                            <motion.img 
+                              key={currentImageIndex}
+                              src={currentEvent.images[currentImageIndex]} 
+                              alt={`Event ${currentImageIndex + 1}`} 
+                              className="max-w-full h-auto rounded border-2 border-black shadow-lg cursor-pointer mx-auto" 
+                              onClick={handleNextImage}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          )}
+                          <div className="text-xs mt-2 text-center opacity-70">
+                            {currentImageIndex + 1} / {currentEvent.images.length} - CLICK TO NEXT
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {isVideoFile(currentEvent.images[0]) ? (
+                            <video 
+                              src={currentEvent.images[0]} 
+                              controls
+                              className="max-w-full h-auto rounded border-2 border-black shadow-lg mx-auto" 
+                            />
+                          ) : (
+                            <img 
+                              src={currentEvent.images[0]} 
+                              alt="Event" 
+                              className="max-w-full h-auto rounded border-2 border-black shadow-lg mx-auto" 
+                            />
+                          )}
+                        </>
+                      )}
                     </div>
                   )}
                 </>
               )}
               {currentEvent.type === 'image' && currentEvent.images && currentEvent.images.length > 0 && (
                 <div>
-                  <div className={`grid gap-4 mb-4 ${currentEvent.images.length === 1 ? 'grid-cols-1' : currentEvent.images.length === 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
-                    {currentEvent.images.map((imageSrc, index) => (
-                      <img 
-                        key={index}
-                        src={imageSrc} 
-                        alt={`Event ${index + 1}`} 
-                        className="max-w-full h-auto rounded border-2 border-black shadow-lg" 
-                      />
-                    ))}
+                  <div className="mb-4 relative">
+                    {currentEvent.images.length > 1 ? (
+                      <>
+                        {isVideoFile(currentEvent.images[currentImageIndex]) ? (
+                          <motion.video
+                            key={currentImageIndex}
+                            src={currentEvent.images[currentImageIndex]}
+                            controls
+                            className="max-w-full h-auto rounded border-2 border-black shadow-lg cursor-pointer mx-auto"
+                            onClick={handleNextImage}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ) : (
+                          <motion.img 
+                            key={currentImageIndex}
+                            src={currentEvent.images[currentImageIndex]} 
+                            alt={`Event ${currentImageIndex + 1}`} 
+                            className="max-w-full h-auto rounded border-2 border-black shadow-lg cursor-pointer mx-auto" 
+                            onClick={handleNextImage}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        )}
+                        <div className="text-xs mt-2 text-center opacity-70">
+                          {currentImageIndex + 1} / {currentEvent.images.length} - CLICK TO NEXT
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {isVideoFile(currentEvent.images[0]) ? (
+                          <video 
+                            src={currentEvent.images[0]} 
+                            controls
+                            className="max-w-full h-auto rounded border-2 border-black shadow-lg mx-auto" 
+                          />
+                        ) : (
+                          <img 
+                            src={currentEvent.images[0]} 
+                            alt="Event" 
+                            className="max-w-full h-auto rounded border-2 border-black shadow-lg mx-auto" 
+                          />
+                        )}
+                      </>
+                    )}
                   </div>
                   {currentEvent.content && (
                     <div className="text-sm leading-relaxed">{currentEvent.content}</div>
@@ -482,7 +763,14 @@ const Game: React.FC = () => {
         const discoveredBlocks = Array.from(hitBlocks).filter(
           (blockIndex) => Math.floor(blockIndex / 10) === currentLevel
         ).length;
-        return totalBlocks > 0 && discoveredBlocks === totalBlocks;
+        const npcsWithEvents = currentLevelData.npcs?.filter(npc => npc.event) || [];
+        const totalNPCs = npcsWithEvents.length;
+        const discoveredNPCs = Array.from(hitNPCs).filter(
+          (npcIndex) => Math.floor(npcIndex / 10) === currentLevel
+        ).length;
+        const totalRequirements = totalBlocks + totalNPCs;
+        const discoveredRequirements = discoveredBlocks + discoveredNPCs;
+        return totalRequirements > 0 && discoveredRequirements === totalRequirements;
       })() && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center bg-black/70 z-50"
