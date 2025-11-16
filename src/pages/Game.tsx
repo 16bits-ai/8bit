@@ -33,6 +33,9 @@ const Game: React.FC = () => {
   const keysPressed = useRef<Set<string>>(new Set());
   const movementIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const characterPositionRef = useRef(characterPosition);
+  const currentLevelRef = useRef(currentLevel);
+  const [bouncingBlocks, setBouncingBlocks] = useState<Set<number>>(new Set());
 
   // Helper function to check if a file is a video
   const isVideoFile = (src: string): boolean => {
@@ -89,19 +92,36 @@ const Game: React.FC = () => {
       if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && !isJumping) {
         e.preventDefault();
         setIsJumping(true);
+        // Check if under block using current values from refs
+        const currentLevelData = levels[currentLevelRef.current];
+        const isUnderBlock = currentLevelData ? currentLevelData.blocks.some((block) => {
+          const characterViewportPos = characterPositionRef.current;
+          const blockViewportPos = block.position - characterPositionRef.current;
+          const distance = Math.abs(characterViewportPos - blockViewportPos);
+          return distance <= 5;
+        }) : false;
+        const jumpDuration = isUnderBlock ? 300 : 600;
         setTimeout(() => {
           setIsJumping(false);
-        }, 600);
+        }, jumpDuration);
       }
 
       // Start continuous movement if not already running
       if (!movementIntervalRef.current && (keysPressed.current.has('left') || keysPressed.current.has('right'))) {
         movementIntervalRef.current = setInterval(() => {
           if (keysPressed.current.has('right')) {
-            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+            setCharacterPosition((prev) => {
+              const newPos = Math.min(prev + 0.5, 100);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
           if (keysPressed.current.has('left')) {
-            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+            setCharacterPosition((prev) => {
+              const newPos = Math.max(prev - 0.5, 0);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
         }, 16); // ~60fps for smooth movement
       }
@@ -148,8 +168,12 @@ const Game: React.FC = () => {
     setFacingDirection('right');
     setHitBlocks(new Set());
     setHitNPCs(new Set());
+    setBouncingBlocks(new Set());
     setShowEventModal(false);
     setCurrentEvent(null);
+    setCharacterPosition(0);
+    characterPositionRef.current = 0;
+    currentLevelRef.current = currentLevel;
     // Clear movement state
     keysPressed.current.clear();
     if (movementIntervalRef.current) {
@@ -224,6 +248,21 @@ const Game: React.FC = () => {
     }
   }, [hitBlocks, hitNPCs, currentLevel]);
 
+  // Helper function to check if character is under a block
+  const checkIsUnderBlock = (): boolean => {
+    const currentLevelData = levels[currentLevel];
+    if (!currentLevelData) return false;
+
+    // Check if character is horizontally aligned with any block
+    return currentLevelData.blocks.some((block) => {
+      const characterViewportPos = characterPosition;
+      const blockViewportPos = block.position - characterPosition;
+      const distance = Math.abs(characterViewportPos - blockViewportPos);
+      // Character is under block if horizontally aligned (within 5% distance)
+      return distance <= 5;
+    });
+  };
+
   // Check for block collisions
   useEffect(() => {
     if (!isJumping) return;
@@ -243,7 +282,34 @@ const Game: React.FC = () => {
       // Check if character is near block position and jumping (in viewport coordinates)
       const distance = Math.abs(characterViewportPos - blockViewportPos);
       if (distance <= 5 && !hitBlocks.has(blockIndex)) {
-        setHitBlocks((prev) => new Set(prev).add(blockIndex));
+        // Check if under block to determine jump duration
+        const isUnderBlock = currentLevelData.blocks.some((b) => {
+          const charPos = characterPosition;
+          const blockPos = b.position - characterPosition;
+          return Math.abs(charPos - blockPos) <= 5;
+        });
+        const jumpDuration = isUnderBlock ? 300 : 600;
+        // Peak of jump is approximately at 40-50% of jump duration
+        const peakDelay = jumpDuration * 0.45;
+        const bounceDuration = 450; // 0.4 seconds
+        const bouncePeakTime = bounceDuration * 0.3; // Peak is at 30% of bounce duration (fast ascending)
+        
+        // Trigger block bounce animation when Mario reaches peak of jump
+        setTimeout(() => {
+          setBouncingBlocks((prev) => new Set(prev).add(blockIndex));
+          setTimeout(() => {
+            setBouncingBlocks((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(blockIndex);
+              return newSet;
+            });
+          }, bounceDuration);
+          
+          // Change to brick when bounce reaches its peak (top)
+          setTimeout(() => {
+            setHitBlocks((prev) => new Set(prev).add(blockIndex));
+          }, bouncePeakTime);
+        }, peakDelay);
         setCurrentEvent(block.event);
         setCurrentImageIndex(0);
         setShowEventModal(true);
@@ -280,8 +346,13 @@ const Game: React.FC = () => {
 
   const handleNextLevel = () => {
     if (currentLevel < levels.length - 1) {
-      setCurrentLevel((prev) => prev + 1);
+      setCurrentLevel((prev) => {
+        const newLevel = prev + 1;
+        currentLevelRef.current = newLevel;
+        return newLevel;
+      });
       setCharacterPosition(0);
+      characterPositionRef.current = 0;
       setShowLevelComplete(false);
       levelCompleteTriggered.current = false;
     } else {
@@ -312,10 +383,18 @@ const Game: React.FC = () => {
       if (!movementIntervalRef.current) {
         movementIntervalRef.current = setInterval(() => {
           if (keysPressed.current.has('right')) {
-            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+            setCharacterPosition((prev) => {
+              const newPos = Math.min(prev + 0.5, 100);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
           if (keysPressed.current.has('left')) {
-            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+            setCharacterPosition((prev) => {
+              const newPos = Math.max(prev - 0.5, 0);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
         }, 16);
       }
@@ -329,10 +408,18 @@ const Game: React.FC = () => {
       if (!movementIntervalRef.current) {
         movementIntervalRef.current = setInterval(() => {
           if (keysPressed.current.has('right')) {
-            setCharacterPosition((prev) => Math.min(prev + 0.5, 100));
+            setCharacterPosition((prev) => {
+              const newPos = Math.min(prev + 0.5, 100);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
           if (keysPressed.current.has('left')) {
-            setCharacterPosition((prev) => Math.max(prev - 0.5, 0));
+            setCharacterPosition((prev) => {
+              const newPos = Math.max(prev - 0.5, 0);
+              characterPositionRef.current = newPos;
+              return newPos;
+            });
           }
         }, 16);
       }
@@ -358,9 +445,18 @@ const Game: React.FC = () => {
   const handleJump = () => {
     if (!isJumping) {
       setIsJumping(true);
+      // Check if under block using current values from refs
+      const currentLevelData = levels[currentLevelRef.current];
+      const isUnderBlock = currentLevelData ? currentLevelData.blocks.some((block) => {
+        const characterViewportPos = characterPositionRef.current;
+        const blockViewportPos = block.position - characterPositionRef.current;
+        const distance = Math.abs(characterViewportPos - blockViewportPos);
+        return distance <= 5;
+      }) : false;
+      const jumpDuration = isUnderBlock ? 300 : 600;
       setTimeout(() => {
         setIsJumping(false);
-      }, 600);
+      }, jumpDuration);
     }
   };
 
@@ -450,7 +546,7 @@ const Game: React.FC = () => {
           left: `${Math.min(characterPosition, 80)}%`,
         }}
         animate={{
-          y: isJumping ? -80 : 0,
+          y: isJumping ? (checkIsUnderBlock() ? -38 : -80) : 0,
           x: '-50%',
         }}
         transition={{
@@ -475,19 +571,28 @@ const Game: React.FC = () => {
       {level.blocks.map((block, index) => {
         const blockIndex = currentLevel * 100 + index;
         const isHit = hitBlocks.has(blockIndex);
+        const isBouncing = bouncingBlocks.has(blockIndex);
         
         // Calculate block position - blocks are fixed in world coordinates and move with background
         // Background and character move 1:1, so block viewport position = world position - character position
         const blockViewportPosition = block.position - characterPosition;
         
         return (
-          <div
+          <motion.div
             key={`block-${currentLevel}-${index}`}
             className="absolute z-25"
             style={{
               left: `${blockViewportPosition}%`,
               bottom: '200px', // Higher up, requires jumping to reach
               transform: 'translateX(-50%)'
+            }}
+            animate={{
+              y: isBouncing ? [0, -20, 0] : 0,
+            }}
+            transition={{
+              duration: 0.45,
+              times: [0, 0.3, 1], // Fast ascending (30% of time to reach peak), slow descending (70% of time to return)
+              ease: ['easeOut', 'easeIn'],
             }}
           >
             <img
@@ -499,7 +604,7 @@ const Game: React.FC = () => {
                 filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))'
               }}
             />
-          </div>
+          </motion.div>
         );
       })}
 
