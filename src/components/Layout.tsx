@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Dock, { DockItemData } from './Dock';
-import { Home, User, Briefcase, Mail, Package } from 'lucide-react';
+import { Home, User, Briefcase, TerminalSquare, Package } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -28,9 +28,9 @@ const Layout: React.FC = () => {
       onClick: () => navigate('/gadgets')
     },
     {
-      icon: <Mail size={20} color="#FFE66D" />,
-      label: 'Contact',
-      onClick: () => navigate('/contact')
+      icon: <TerminalSquare size={20} color="#FFE66D" strokeWidth={2} />,
+      label: 'Terminal',
+      onClick: () => navigate('/terminal')
     }
   ];
 

@@ -4,7 +4,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
 import Projects from './pages/Projects';
-import Contact from './pages/Contact';
+import Terminal from './pages/Terminal';
 import Game from './pages/Game';
 import Gadgets from './pages/Gadgets';
 
@@ -34,7 +34,7 @@ function App() {
           <Route path="about" element={<About />} />
           <Route path="projects" element={<Projects />} />
           <Route path="gadgets" element={<Gadgets />} />
-          <Route path="contact" element={<Contact />} />
+          <Route path="terminal" element={<Terminal />} />
           <Route path="game" element={<Game />} />
         </Route>
       </Routes>

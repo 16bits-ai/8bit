@@ -168,7 +168,7 @@ const About: React.FC = () => {
                   />
                   <div className="flex-1">
                     <h3 className="text-lg md:text-xl mb-1">M.S. LEARNING, DESIGN, TECHNOLOGY</h3>
-                    <p className="text-xs opacity-80">Stanford • Dec 2024 - Apr 2026</p>
+                    <p className="text-xs opacity-80">Stanford • Dec 2025 - Aug 2026</p>
                   </div>
                 </div>
               </div>
@@ -193,7 +193,7 @@ const About: React.FC = () => {
                     }}
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg md:text-xl mb-1">B.A. CS + MUSIC THEORY</h3>
+                    <h3 className="text-lg md:text-xl mb-1">B.A. Computer Science, Music</h3>
                     <p className="text-xs opacity-80">McGill • Sep 2013 - Apr 2018</p>
                   </div>
                 </div>
