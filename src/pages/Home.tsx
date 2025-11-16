@@ -6,13 +6,20 @@ import { motion } from 'framer-motion';
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     };
     
+    const checkSafari = () => {
+      const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      setIsSafari(isSafariBrowser);
+    };
+    
     checkMobile();
+    checkSafari();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -20,7 +27,7 @@ const Home: React.FC = () => {
     <div className="relative w-full h-screen overflow-hidden bg-black">
       <ParallaxBackground color="#00FF41" variant="grid" />
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 pb-32">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -28,15 +35,17 @@ const Home: React.FC = () => {
           className="text-center"
         >
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-bold mb-4 md:mb-6 tracking-wider"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 tracking-wider"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              textShadow: isMobile 
-                ? '0 0 5px #00FF41' 
+              textShadow: (isMobile || isSafari)
+                ? '0 0 3px #00FF41' 
                 : '0 0 10px #00FF41, 0 0 20px #00FF41, 0 0 30px #00FF41',
               color: '#00FF41',
               WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale'
+              MozOsxFontSmoothing: 'grayscale',
+              textRendering: 'optimizeLegibility',
+              willChange: 'auto'
             }}
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
@@ -85,7 +94,7 @@ const Home: React.FC = () => {
             </motion.div>
           ) : (
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
@@ -126,7 +135,7 @@ const Home: React.FC = () => {
 
         {!isMobile && (
           <motion.div
-            className="absolute bottom-32 text-center"
+            className="absolute bottom-32 text-center w-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5 }}

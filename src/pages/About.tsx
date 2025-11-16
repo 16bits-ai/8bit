@@ -12,13 +12,20 @@ import carlTechReviewsLogo from '../assets/projects/CarlTechReview.png';
 
 const About: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     };
     
+    const checkSafari = () => {
+      const isSafariBrowser = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      setIsSafari(isSafariBrowser);
+    };
+    
     checkMobile();
+    checkSafari();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -33,7 +40,7 @@ const About: React.FC = () => {
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FF6B35',
-            textShadow: isMobile ? '0 0 5px #FF6B35' : '0 0 10px #FF6B35',
+            textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale'
           }}
@@ -49,7 +56,7 @@ const About: React.FC = () => {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#FF6B35',
-                textShadow: isMobile ? '0 0 5px #FF6B35' : '0 0 10px #FF6B35',
+                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale'
               }}
@@ -133,7 +140,7 @@ const About: React.FC = () => {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#FF6B35',
-                textShadow: isMobile ? '0 0 5px #FF6B35' : '0 0 10px #FF6B35',
+                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale'
               }}
@@ -245,7 +252,7 @@ const About: React.FC = () => {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#FF6B35',
-                textShadow: isMobile ? '0 0 5px #FF6B35' : '0 0 10px #FF6B35',
+                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale'
               }}

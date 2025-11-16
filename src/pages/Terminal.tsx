@@ -176,11 +176,11 @@ Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be fri
   ];
 
   return (
-    <div className="relative w-full min-h-screen bg-black">
+    <div className="relative w-full bg-black" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
       <ParallaxBackground color="#FFE66D" variant="lines" />
 
-      <div className="relative z-10 container mx-auto px-4 py-4 md:py-6 flex items-center" style={{ height: 'calc(100vh - 100px)' }}>
-        <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
+      <div className="relative z-10 container mx-auto px-4 py-2 md:py-6 flex items-center h-full" style={{ minHeight: 0, paddingBottom: '100px' }}>
+        <div className="max-w-4xl mx-auto w-full h-full flex flex-col" style={{ minHeight: 0 }}>
           <div
             className="border-4 border-[#FFE66D] bg-black/90 p-4 md:p-8 flex flex-col flex-1"
             style={{
