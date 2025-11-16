@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA redirect - must run immediately
+      (function() {
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        
+        if (path !== '/' && path !== '/index.html') {
+          // Store path in sessionStorage and redirect to index.html
+          try {
+            sessionStorage.setItem('githubPagesRedirect', path + search + hash);
+          } catch(e) {
+            // Fallback if sessionStorage is not available
+          }
+          window.location.replace('/index.html');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+    <script>
+      // Fallback redirect in case JavaScript is disabled or blocked
+      setTimeout(function() {
+        window.location.replace('/index.html');
+      }, 100);
+    </script>
+  </body>
+</html>

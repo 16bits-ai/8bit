@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -7,9 +8,26 @@ import Contact from './pages/Contact';
 import Game from './pages/Game';
 import Gadgets from './pages/Gadgets';
 
+function RedirectHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check for GitHub Pages redirect
+    const redirectPath = sessionStorage.getItem('githubPagesRedirect');
+    if (redirectPath && (location.pathname === '/' || location.pathname === '/index.html')) {
+      sessionStorage.removeItem('githubPagesRedirect');
+      navigate(redirectPath, { replace: true });
+    }
+  }, [navigate, location]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <RedirectHandler />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
