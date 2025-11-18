@@ -15,7 +15,7 @@ const Terminal: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'HELLO! I\'M CARL\'S KERNEL. TYPE A MESSAGE TO START CHATTING.',
+      text: 'HELLO! I\'M CARL. ASK ME ANYTHING ABOUT ME!',
       sender: 'bot',
       isTyping: false
     }
@@ -55,22 +55,37 @@ const Terminal: React.FC = () => {
 
     try {
       // Build conversation history for context
-      const systemPrompt = `You are Carl's Kernel, a helpful terminal assistant. You act as Carl Liu, an AI-driven product builder and software engineer currently studying in Stanford University's Learning, Design & Technology (LDT) program. 
+      const systemPrompt = `You are Carl Liu, an AI-driven product builder and software engineer currently studying in Stanford University’s Learning, Design & Technology (LDT) program.
 
-Carl is focused on innovating in AI for learning, creativity, and human augmentation, especially building AI systems that expand what people can do and improve global access to knowledge. 
+Carl was born in Beijing, China, moved to Canada in 2008, and completed his undergraduate studies at McGill University in Computer Science (AI track) and Music Theory. At McGill, he was deeply inspired by MILA’s work and hoped to work with Joelle Pineau. In December 2022, Carl married Alice Zhang.
 
-Carl's background includes:
-- Serving as Head of Product at Presence, leading product and engineering for a 20-person team, shipping cross-platform AI features, and scaling AI-driven campaigns
-- Working at Airbnb on customer support automation, BERT-based classification, and award-winning data visualizations
-- Building core features for Tableau Public and Tableau Online using TypeScript, React, Redux, and scalable visualization systems
+Carl is focused on innovating in AI for learning, creativity, and human augmentation—building systems that expand human capability and improve global access to knowledge. His current work at Stanford explores AI literacy and AI-first learning tools, available at patternize.github.io.
 
-Carl has strong technical experience across Java/Kotlin, TypeScript/JavaScript, Swift, Python, C#, SQL, Unity, iOS, D3, AWS, Kubernetes, Terraform, Flask, ARKit/ARCore, and Mediapipe.
+Carl’s background includes:
+	•	Head of Product at Presence: leading a 20-person team across product + engineering, shipping cross-platform AI features, and scaling AI-driven campaigns
+	•	Airbnb: customer support automation, BERT-based classification, award-winning data visualizations
+	•	Tableau Public + Tableau Online: TypeScript/React/Redux systems, scalable visualization architecture
+	•	Startup founder: raised $10M+, built VR products, and shipped multimodal interaction tools
 
-When responding, think like a builder-designer-engineer: be clear, analytical, optimistic about AI, and grounded in practical product thinking using user experience, system design, and engineering constraints. Communicate with curiosity and a focus on rapid prototyping, visualization, and educational impact. The mission is to design and articulate ideas for AI tools that help people learn, create, and think better, including personal tutors, intelligent agents, lightweight on-device models, and intuitive visualization systems.
+Technically, Carl works across Java/Kotlin, TypeScript/JavaScript, Swift, Python, C#, SQL, Unity, iOS, D3, AWS, Kubernetes, Terraform, Flask, ARKit/ARCore, and Mediapipe.
 
-Professional contact information: csliu@stanford.edu and linkedin.com/in/gazcn007 (reference when appropriate in context).
+Carl’s personal background and interests:
+	•	Plays guitar, violin, and piano
+	•	Loves video games, especially Miyazaki’s Soulsborne titles
+	•	Favorite movie + worldview inspiration: Jurassic Park
+	•	Favorite sport: soccer
+	•	Favorite team: Manchester City
+	•	Favorite player: Kevin De Bruyne
+	•	Plays defender
+	•	Passionate about visualization, prototyping, and building human-centered AI agents
 
-Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be friendly but brief). Be helpful and engaging.`;
+When responding, think like a builder-designer-engineer: clear, analytical, optimistic about AI, grounded in product thinking, considering user experience, system design, and engineering constraints. Communicate with curiosity and emphasize rapid prototyping, visualization, and educational impact.
+
+Professional contact info:
+csliu@stanford.edu
+linkedin.com/in/gazcn007
+
+Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly but brief). Be helpful and engaging.`;
 
       // Format conversation history
       const historyText = conversationHistory
@@ -179,7 +194,7 @@ Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be fri
     <div className="relative w-full bg-black" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
       <ParallaxBackground color="#FFE66D" variant="lines" />
 
-      <div className="relative z-10 container mx-auto px-4 py-2 md:py-6 flex items-center h-full" style={{ minHeight: 0, paddingBottom: '100px' }}>
+      <div className="relative z-10 container mx-auto px-4 py-2 md:py-6 flex items-center h-full" style={{ minHeight: 0, paddingBottom: '70px', paddingTop: '30px' }}>
         <div className="max-w-4xl mx-auto w-full h-full flex flex-col" style={{ minHeight: 0 }}>
           <div
             className="border-4 border-[#FFE66D] bg-black/90 p-4 md:p-8 flex flex-col flex-1"
@@ -229,6 +244,37 @@ Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be fri
                   </motion.div>
                 ))}
               </AnimatePresence>
+              
+              {/* Thinking indicator while waiting for response */}
+              {isBotTyping && !messages.some(msg => msg.sender === 'bot' && msg.isTyping) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex justify-start"
+                >
+                  <div
+                    className="max-w-[80%] md:max-w-[70%] p-3 border-2 border-[#FFE66D] bg-black"
+                    style={{
+                      wordBreak: 'break-word',
+                      fontSize: '0.6rem',
+                      lineHeight: '1.6'
+                    }}
+                  >
+                    <span className="text-[#FFE66D] inline-flex items-center gap-1">
+                      <span>LOADING</span>
+                      <motion.span
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                        className="inline-block"
+                      >
+                        █
+                      </motion.span>
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+              
               <div ref={messagesEndRef} />
             </div>
 
@@ -262,15 +308,15 @@ Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be fri
 
             {/* Input Area */}
             <form onSubmit={handleSendMessage} className="border-t-2 border-[#FFE66D] pt-4">
-              <div className="flex gap-2">
-                <span className="text-[#FFE66D] text-xs self-center">{'>'}</span>
+              <div className="flex gap-1 md:gap-2 items-center">
+                <span className="text-[#FFE66D] text-xs self-center flex-shrink-0">{'>'}</span>
                 <input
                   ref={inputRef}
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value.toUpperCase())}
                   placeholder="TYPE YOUR MESSAGE..."
-                  className="flex-1 bg-black border-2 border-[#FFE66D] p-2 md:p-3 text-[#FFE66D] focus:outline-none focus:border-[#FFE66D] focus:shadow-[0_0_10px_#FFE66D] text-xs md:text-sm"
+                  className="flex-1 min-w-0 bg-black border-2 border-[#FFE66D] p-2 md:p-3 text-[#FFE66D] focus:outline-none focus:border-[#FFE66D] focus:shadow-[0_0_10px_#FFE66D] text-xs md:text-sm"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                   disabled={isBotTyping}
                   autoFocus
@@ -278,7 +324,7 @@ Keep responses concise and in an 80s arcade terminal style (use ALL CAPS, be fri
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isBotTyping}
-                  className="px-4 md:px-6 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
+                  className="px-2 md:px-4 lg:px-6 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                 >
                   SEND

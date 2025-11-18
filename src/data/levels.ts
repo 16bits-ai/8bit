@@ -132,7 +132,7 @@ export const levels: Level[] = [
           type: 'text',
           content:
             'Beijing, China, December 22, 1994 - this is where my journey began.',
-          images: [kidImage, kidImage2, kidImage3, kidImage4],
+          images: [kidImage2, kidImage, kidImage3, kidImage4],
         },
       },
       {

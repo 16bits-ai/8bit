@@ -35,6 +35,7 @@ function App() {
           <Route path="gadgets" element={<Gadgets />} />
           <Route path="terminal" element={<Terminal />} />
           <Route path="game" element={<Game />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
