@@ -24,6 +24,30 @@ const Terminal: React.FC = () => {
   const [isBotTyping, setIsBotTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [viewportHeight, setViewportHeight] = useState<string | number>('100dvh');
+  
+  // Handle mobile keyboard resizing
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+        // Scroll to bottom when viewport resizes (keyboard opens)
+        setTimeout(scrollToBottom, 100);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize); // iOS sometimes triggers scroll instead
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      }
+    };
+  }, []);
   
   // Initialize Gemini AI
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -84,6 +108,7 @@ When responding, think like a builder-designer-engineer: clear, analytical, opti
 Professional contact info:
 csliu@stanford.edu
 linkedin.com/in/gazcn007
+github.com/gazcn007
 
 Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly but brief). Be helpful and engaging.`;
 
@@ -138,8 +163,19 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
       // Get updated messages list for conversation history
       const updatedMessages = [...messages, userMessage];
       
-      // Get response from Gemini
-      const responseText = await getBotResponse(currentInput, updatedMessages);
+      let responseText = '';
+
+      // Check for default options to provide direct links
+      if (messageText === defaultOptions[0] || messageText.toLowerCase().includes('email')) {
+        responseText = 'YOU CAN EMAIL ME AT: csliu@stanford.edu';
+      } else if (messageText === defaultOptions[1] || messageText.toLowerCase().includes('linkedin')) {
+        responseText = 'MY LINKEDIN PROFILE: https://linkedin.com/in/gazcn007';
+      } else if (messageText === defaultOptions[2] || messageText.toLowerCase().includes('github')) {
+        responseText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
+      } else {
+        // Get response from Gemini
+        responseText = await getBotResponse(currentInput, updatedMessages);
+      }
       
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -188,10 +224,57 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
   const defaultOptions = [
     'What is your email?',
     'What is your linkedin?',
+    'What is your github?'
   ];
 
+  // Helper to parse and render links in messages
+  const renderMessageWithLinks = (text: string) => {
+    // Split by URLs or Email addresses
+    // Regex matches:
+    // 1. URLs starting with http/https
+    // 2. URLs starting with www.
+    // 3. Email addresses
+    const regex = /((?:https?:\/\/[^\s]+)|(?:www\.[^\s]+)|(?:[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+))/g;
+    
+    const parts = text.split(regex);
+    
+    return parts.map((part, i) => {
+      if (part.match(/^(https?:\/\/|www\.)/)) {
+        const href = part.startsWith('www.') ? `https://${part}` : part;
+        return (
+          <a 
+            key={i} 
+            href={href} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+          >
+            {part}
+          </a>
+        );
+      } else if (part.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/)) {
+        return (
+          <a 
+            key={i} 
+            href={`mailto:${part}`} 
+            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   return (
-    <div className="relative w-full bg-black" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
+    <div 
+      className="relative w-full bg-black overflow-hidden" 
+      style={{ 
+        height: viewportHeight,
+        minHeight: typeof viewportHeight === 'string' ? viewportHeight : `${viewportHeight}px` 
+      }}
+    >
       <ParallaxBackground color="#FFE66D" variant="lines" />
 
       <div className="relative z-10 container mx-auto px-4 py-2 md:py-6 flex items-center h-full" style={{ minHeight: 0, paddingBottom: '70px', paddingTop: '30px' }}>
@@ -238,7 +321,9 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
                           className="text-[#FFE66D]"
                         />
                       ) : (
-                        <span className="text-[#FFE66D]">{message.text}</span>
+                        <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
+                          {renderMessageWithLinks(message.text)}
+                        </span>
                       )}
                     </div>
                   </motion.div>
@@ -315,6 +400,10 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value.toUpperCase())}
+                  onFocus={() => {
+                    // Scroll to bottom when input is focused to ensure visibility
+                    setTimeout(scrollToBottom, 300);
+                  }}
                   placeholder="TYPE YOUR MESSAGE..."
                   className="flex-1 min-w-0 bg-black border-2 border-[#FFE66D] p-2 md:p-3 text-[#FFE66D] focus:outline-none focus:border-[#FFE66D] focus:shadow-[0_0_10px_#FFE66D] text-xs md:text-sm"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
