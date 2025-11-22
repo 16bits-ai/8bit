@@ -23,9 +23,9 @@ import Guitar2 from '../assets/pic/Guitar2.jpg';
 import Guitar3 from '../assets/pic/Guitar3.jpg';
 import guitarVideo from '../assets/video/guitar.mov';
 import guitarVideo2 from '../assets/video/guitar2.mov';
-import OpenSource from '../assets/pic/OpenSource.jpg';
-import OpenSource2 from '../assets/pic/OpenSource2.jpg';
-import OpenSource3 from '../assets/pic/OpenSource3.jpg';
+import OpenSource from '../assets/pic/Opensource.jpg';
+import OpenSource2 from '../assets/pic/Opensource2.jpg';
+import OpenSource3 from '../assets/pic/Opensource3.jpg';
 
 // Level 3
 import TableauPat from '../assets/pic/TableauPat.jpg';
