@@ -4,11 +4,18 @@ import TextType from '../components/TextType';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI } from '@google/genai';
 
+// Project Logos
+import NativePod from '../assets/projects/NativePod.png';
+import OOTD from '../assets/projects/OOTD.png';
+import patternizeLogo from '../assets/projects/Patternize.png';
+import carlTechReviewsLogo from '../assets/projects/CarlTechReview.png';
+
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   isTyping?: boolean;
+  type?: 'text' | 'projects';
 }
 
 const Terminal: React.FC = () => {
@@ -164,12 +171,14 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
       const updatedMessages = [...messages, userMessage];
       
       let responseText = '';
+      let isProjectResponse = false;
 
       // Check for default options to provide direct links
       if (messageText === defaultOptions[0] || messageText.toLowerCase().includes('email')) {
         responseText = 'YOU CAN EMAIL ME AT: csliu@stanford.edu';
-      } else if (messageText === defaultOptions[1] || messageText.toLowerCase().includes('linkedin')) {
-        responseText = 'MY LINKEDIN PROFILE: https://linkedin.com/in/gazcn007';
+      } else if (messageText === defaultOptions[1] || messageText.toLowerCase().includes('project')) {
+        responseText = 'HERE ARE MY CURRENT PROJECTS:';
+        isProjectResponse = true;
       } else if (messageText === defaultOptions[2] || messageText.toLowerCase().includes('github')) {
         responseText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
       } else {
@@ -181,7 +190,8 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
         id: (Date.now() + 1).toString(),
         text: responseText,
         sender: 'bot',
-        isTyping: true
+        isTyping: true,
+        type: isProjectResponse ? 'projects' : 'text'
       };
       
       setMessages(prev => [...prev, botResponse]);
@@ -189,7 +199,7 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
       
       // Mark message as done typing after animation completes
       // Estimate: ~30ms per character + 500ms buffer
-      const typingDuration = responseText.length * 30 + 500;
+      const typingDuration = isProjectResponse ? 500 : responseText.length * 30 + 500;
       setTimeout(() => {
         setMessages(prev =>
           prev.map(msg => (msg.id === botResponse.id ? { ...msg, isTyping: false } : msg))
@@ -201,7 +211,8 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
         id: (Date.now() + 1).toString(),
         text: 'ERROR: FAILED TO GET RESPONSE. PLEASE TRY AGAIN.',
         sender: 'bot',
-        isTyping: false
+        isTyping: false,
+        type: 'text'
       };
       setMessages(prev => [...prev, errorResponse]);
       setIsBotTyping(false);
@@ -223,7 +234,7 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
   const hasUserMessages = messages.some(msg => msg.sender === 'user');
   const defaultOptions = [
     'What is your email?',
-    'What is your linkedin?',
+    'What projects are you working on?',
     'What is your github?'
   ];
 
@@ -267,9 +278,82 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
     });
   };
 
+  const renderMessageContent = (message: Message) => {
+    if (message.type === 'projects') {
+      return (
+        <div className="space-y-6 w-full">
+          <div className="text-[#FFE66D] mb-4">HERE ARE MY CURRENT PROJECTS:</div>
+          {[
+            { id: 1, logo: patternizeLogo, title: 'Patternize.io', description: 'Helps people visualize Computer Science concepts', url: 'https://patternize.github.io/' },
+            { id: 2, logo: carlTechReviewsLogo, title: 'Carl Tech Reviews', description: 'A blog about technology and software development', url: 'https://gazcn007.github.io/' },
+            { id: 3, logo: NativePod, title: 'NativePod', description: 'Translate podcasts into other languages', url: 'https://nativepod.co/' },
+            { id: 4, logo: OOTD, title: 'OOTD.ai', description: 'Your outfit Stylist that gives you fashion advice', url: 'https://apps.apple.com/us/app/ootd-ai/id6504292959' },
+          ].map((project) => (
+            <a
+              key={project.id}
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block group"
+            >
+              <div
+                className="border-2 border-[#FFE66D] bg-black p-4 hover:bg-[#FFE66D]/10 transition-all cursor-pointer flex flex-col md:flex-row gap-4 items-center md:items-start"
+                style={{
+                  fontFamily: '"Press Start 2P", cursive',
+                  color: '#FFE66D',
+                  lineHeight: '1.6'
+                }}
+              >
+                {project.logo && (
+                  <img
+                    src={project.logo}
+                    alt={`${project.title} logo`}
+                    className="h-12 w-auto pixelated flex-shrink-0"
+                    style={{
+                      imageRendering: 'pixelated',
+                      filter: 'drop-shadow(0 0 5px #FFE66D)'
+                    }}
+                  />
+                )}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-sm md:text-base mb-2 text-[#FFE66D] group-hover:text-white transition-colors">
+                    {project.title.toUpperCase()}
+                  </h3>
+                  <p className="text-[0.6rem] md:text-xs opacity-80 text-[#FFE66D]">
+                    {project.description.toUpperCase()}
+                  </p>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      );
+    }
+
+    if (message.sender === 'bot' && message.isTyping) {
+      return (
+        <TextType
+          text={message.text}
+          typingSpeed={30}
+          showCursor={true}
+          cursorCharacter="█"
+          cursorBlinkDuration={0.5}
+          loop={false}
+          className="text-[#FFE66D]"
+        />
+      );
+    }
+
+    return (
+      <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
+        {renderMessageWithLinks(message.text)}
+      </span>
+    );
+  };
+
   return (
     <div 
-      className="relative w-full bg-black overflow-hidden" 
+      className="relative w-full bg-black overflow-hidden"  
       style={{ 
         height: viewportHeight,
         minHeight: typeof viewportHeight === 'string' ? viewportHeight : `${viewportHeight}px` 
@@ -299,7 +383,7 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] md:max-w-[70%] p-3 border-2 ${
+                      className={`max-w-[90%] md:max-w-[85%] p-3 border-2 ${
                         message.sender === 'user'
                           ? 'border-[#FFE66D] bg-[#FFE66D]/10'
                           : 'border-[#FFE66D] bg-black'
@@ -310,21 +394,7 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
                         lineHeight: '1.6'
                       }}
                     >
-                      {message.sender === 'bot' && message.isTyping ? (
-                        <TextType
-                          text={message.text}
-                          typingSpeed={30}
-                          showCursor={true}
-                          cursorCharacter="█"
-                          cursorBlinkDuration={0.5}
-                          loop={false}
-                          className="text-[#FFE66D]"
-                        />
-                      ) : (
-                        <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
-                          {renderMessageWithLinks(message.text)}
-                        </span>
-                      )}
+                      {renderMessageContent(message)}
                     </div>
                   </motion.div>
                 ))}

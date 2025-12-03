@@ -5,10 +5,6 @@ import mcgillLogo from '../assets/projects/McGill.png';
 import tableauLogo from '../assets/projects/Tableau.png';
 import stanfordLogo from '../assets/projects/Stanford.png';
 import presenceLogo from '../assets/projects/Presence.png';
-import NativePod from '../assets/projects/NativePod.png';
-import OOTD from '../assets/projects/OOTD.png';
-import patternizeLogo from '../assets/projects/Patternize.png';
-import carlTechReviewsLogo from '../assets/projects/CarlTechReview.png';
 
 const About: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -49,90 +45,6 @@ const About: React.FC = () => {
         </h1>
 
         <div className="max-w-4xl mx-auto space-y-12">
-          {/* Projects Section */}
-          <div>
-            <h2
-              className="text-3xl md:text-4xl font-bold mb-8"
-              style={{
-                fontFamily: '"Press Start 2P", cursive',
-                color: '#FF6B35',
-                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
-                WebkitFontSmoothing: 'antialiased',
-                MozOsxFontSmoothing: 'grayscale'
-              }}
-            >
-              PROJECTS
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { id: 1, logo: patternizeLogo, title: 'Patternize.io', description: 'Helps people visualize Computer Science concepts', url: 'https://patternize.github.io/' },
-                { id: 2, logo: carlTechReviewsLogo, title: 'Carl Tech Reviews', description: 'A blog about technology and software development', url: 'https://gazcn007.github.io/' },
-                { id: 3, logo: NativePod, title: 'NativePod', description: 'Translate podcasts into other languages', url: 'https://nativepod.co/' },
-                { id: 4, logo: OOTD, title: 'OOTD.ai', description: 'Your outfit Stylist that gives you fashion advice', url: 'https://apps.apple.com/us/app/ootd-ai/id6504292959' },
-              ].map((project) => {
-                const ProjectCard = (
-                  <div
-                    className="border-4 border-[#FF6B35] bg-black/80 p-6 hover:bg-[#FF6B35]/10 transition-all cursor-pointer"
-                    style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#FF6B35',
-                      lineHeight: '1.8'
-                    }}
-                  >
-                    {project.logo && (
-                      <div className="mb-4 flex justify-center">
-                        <img
-                          src={project.logo}
-                          alt={`${project.title} logo`}
-                          className="max-h-20 w-auto pixelated"
-                          style={{
-                            imageRendering: 'pixelated',
-                            filter: 'drop-shadow(0 0 10px #FF6B35)'
-                          }}
-                        />
-                      </div>
-                    )}
-                    <h3
-                      className="text-lg md:text-xl mb-4"
-                      style={{
-                        fontFamily: '"Press Start 2P", cursive',
-                        color: '#FF6B35'
-                      }}
-                    >
-                      {project.title}
-                    </h3>
-                    <p
-                      className="text-xs md:text-sm"
-                      style={{
-                        fontFamily: '"Press Start 2P", cursive',
-                        color: '#FF6B35',
-                        lineHeight: '1.8'
-                      }}
-                    >
-                      {project.description}
-                    </p>
-                  </div>
-                );
-
-                return project.url ? (
-                  <a
-                    key={project.id}
-                    href={project.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    {ProjectCard}
-                  </a>
-                ) : (
-                  <div key={project.id}>
-                    {ProjectCard}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Experience Section */}
           <div>
             <h2
