@@ -12,7 +12,7 @@
     "deploy": "git add . && git commit -m \"Deploying updates\" && git push origin main"
   },
   "dependencies": {
-    "@google/genai": "^1.29.1",
+    "@anthropic-ai/sdk": "^0.71.0",
     "@supabase/supabase-js": "^2.57.4",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.344.0",
