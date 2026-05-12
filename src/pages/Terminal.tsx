@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ParallaxBackground from '../components/ParallaxBackground';
-import TextType from '../components/TextType';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI } from '@google/genai';
 
 // Project Logos
 import NativePod from '../assets/projects/NativePod.png';
@@ -56,10 +54,6 @@ const Terminal: React.FC = () => {
     };
   }, []);
   
-  // Initialize Gemini AI
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -78,72 +72,61 @@ const Terminal: React.FC = () => {
     }
   }, [messages, isBotTyping]);
 
-  // Get bot response from Gemini API
-  const getBotResponse = async (userMessage: string, conversationHistory: Message[]): Promise<string> => {
-    if (!ai) {
-      return 'ERROR: GEMINI API KEY NOT CONFIGURED. PLEASE CHECK YOUR ENVIRONMENT VARIABLES.';
+  // Stream a bot response from /api/chat (SSE).
+  const streamBotResponse = async (
+    botMessageId: string,
+    history: { role: 'user' | 'assistant'; content: string }[],
+  ) => {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history }),
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`HTTP ${response.status}`);
     }
 
-    try {
-      // Build conversation history for context
-      const systemPrompt = `You are Carl Liu, an AI-driven product builder and software engineer currently studying in Stanford University’s Learning, Design & Technology (LDT) program.
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-Carl was born in Beijing, China, moved to Canada in 2008, and completed his undergraduate studies at McGill University in Computer Science (AI track) and Music Theory. At McGill, he was deeply inspired by MILA’s work and hoped to work with Joelle Pineau. In December 2022, Carl married Alice Zhang.
+    const appendDelta = (text: string) => {
+      const upper = text.toUpperCase();
+      setMessages(prev =>
+        prev.map(msg => (msg.id === botMessageId ? { ...msg, text: msg.text + upper } : msg)),
+      );
+    };
 
-Carl is focused on innovating in AI for learning, creativity, and human augmentation—building systems that expand human capability and improve global access to knowledge. His current work at Stanford explores AI literacy and AI-first learning tools, available at patternize.github.io.
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
 
-Carl’s background includes:
-	•	Head of Product at Presence: leading a 20-person team across product + engineering, shipping cross-platform AI features, and scaling AI-driven campaigns
-	•	Airbnb: customer support automation, BERT-based classification, award-winning data visualizations
-	•	Tableau Public + Tableau Online: TypeScript/React/Redux systems, scalable visualization architecture
-	•	Startup founder: raised $10M+, built VR products, and shipped multimodal interaction tools
+      let sep;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
 
-Technically, Carl works across Java/Kotlin, TypeScript/JavaScript, Swift, Python, C#, SQL, Unity, iOS, D3, AWS, Kubernetes, Terraform, Flask, ARKit/ARCore, and Mediapipe.
+        let eventName = 'message';
+        let dataLine = '';
+        for (const line of rawEvent.split('\n')) {
+          if (line.startsWith('event: ')) eventName = line.slice(7);
+          else if (line.startsWith('data: ')) dataLine += line.slice(6);
+        }
+        if (!dataLine) continue;
 
-Carl’s personal background and interests:
-	•	Plays guitar, violin, and piano
-	•	Loves video games, especially Miyazaki’s Soulsborne titles
-	•	Favorite movie + worldview inspiration: Jurassic Park
-	•	Favorite sport: soccer
-	•	Favorite team: Manchester City
-	•	Favorite player: Kevin De Bruyne
-	•	Plays defender
-	•	Passionate about visualization, prototyping, and building human-centered AI agents
-
-When responding, think like a builder-designer-engineer: clear, analytical, optimistic about AI, grounded in product thinking, considering user experience, system design, and engineering constraints. Communicate with curiosity and emphasize rapid prototyping, visualization, and educational impact.
-
-Professional contact info:
-csliu@stanford.edu
-linkedin.com/in/gazcn007
-github.com/gazcn007
-
-Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly but brief). Be helpful and engaging.`;
-
-      // Format conversation history
-      const historyText = conversationHistory
-        .slice(-10) // Keep last 10 messages for context
-        .map(msg => {
-          if (msg.sender === 'user') {
-            return `USER: ${msg.text}`;
-          } else {
-            return `ASSISTANT: ${msg.text}`;
+        try {
+          const payload = JSON.parse(dataLine);
+          if (eventName === 'delta' && typeof payload.text === 'string') {
+            appendDelta(payload.text);
+          } else if (eventName === 'error') {
+            throw new Error(payload.message || 'stream error');
           }
-        })
-        .join('\n');
-
-      const contents = `${systemPrompt}\n\n${historyText}\n\nUSER: ${userMessage}\nASSISTANT:`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: contents,
-      });
-      
-      // Convert to uppercase for terminal style
-      const text = response.text || '';
-      return text.trim().toUpperCase();
-    } catch (error) {
-      console.error('Gemini API error:', error);
-      return 'ERROR: FAILED TO GET RESPONSE. PLEASE TRY AGAIN.';
+        } catch (err) {
+          if (eventName === 'error') throw err;
+        }
+      }
     }
   };
 
@@ -160,55 +143,74 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
     const currentInput = messageText.trim();
     setInputValue('');
     setIsBotTyping(true);
-    
-    // Refocus input after a brief delay
+
     setTimeout(() => {
       inputRef.current?.focus();
     }, 10);
 
     try {
-      // Get updated messages list for conversation history
-      const updatedMessages = [...messages, userMessage];
-      
-      let responseText = '';
+      // Default-option shortcuts: instant canned responses, no API hit.
+      let cannedText = '';
       let isProjectResponse = false;
-
-      // Check for default options to provide direct links
       if (messageText === defaultOptions[0] || messageText.toLowerCase().includes('email')) {
-        responseText = 'YOU CAN EMAIL ME AT: csliu@stanford.edu';
+        cannedText = 'YOU CAN EMAIL ME AT: csliu@stanford.edu';
       } else if (messageText === defaultOptions[1] || messageText.toLowerCase().includes('project')) {
-        responseText = 'HERE ARE MY CURRENT PROJECTS:';
+        cannedText = 'HERE ARE MY CURRENT PROJECTS:';
         isProjectResponse = true;
       } else if (messageText === defaultOptions[2] || messageText.toLowerCase().includes('github')) {
-        responseText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
-      } else {
-        // Get response from Gemini
-        responseText = await getBotResponse(currentInput, updatedMessages);
+        cannedText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
       }
-      
+
+      const botMessageId = (Date.now() + 1).toString();
+
+      if (cannedText) {
+        const botResponse: Message = {
+          id: botMessageId,
+          text: cannedText,
+          sender: 'bot',
+          isTyping: true,
+          type: isProjectResponse ? 'projects' : 'text',
+        };
+        setMessages(prev => [...prev, botResponse]);
+        setIsBotTyping(false);
+        const typingDuration = isProjectResponse ? 500 : cannedText.length * 30 + 500;
+        setTimeout(() => {
+          setMessages(prev =>
+            prev.map(msg => (msg.id === botMessageId ? { ...msg, isTyping: false } : msg))
+          );
+        }, typingDuration);
+        return;
+      }
+
+      // Streaming response: insert empty bot message, then append deltas.
       const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: responseText,
+        id: botMessageId,
+        text: '',
         sender: 'bot',
         isTyping: true,
-        type: isProjectResponse ? 'projects' : 'text'
+        type: 'text',
       };
-      
       setMessages(prev => [...prev, botResponse]);
+
+      const history = [...messages, userMessage]
+        .filter(m => m.type !== 'projects')
+        .map(m => ({
+          role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: m.text,
+        }))
+        .filter(m => m.content.length > 0);
+      history.push({ role: 'user', content: currentInput });
+
+      await streamBotResponse(botMessageId, history);
+
+      setMessages(prev =>
+        prev.map(msg => (msg.id === botMessageId ? { ...msg, isTyping: false } : msg))
+      );
       setIsBotTyping(false);
-      
-      // Mark message as done typing after animation completes
-      // Estimate: ~30ms per character + 500ms buffer
-      const typingDuration = isProjectResponse ? 500 : responseText.length * 30 + 500;
-      setTimeout(() => {
-        setMessages(prev =>
-          prev.map(msg => (msg.id === botResponse.id ? { ...msg, isTyping: false } : msg))
-        );
-      }, typingDuration);
     } catch (error) {
       console.error('Error getting bot response:', error);
       const errorResponse: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         text: 'ERROR: FAILED TO GET RESPONSE. PLEASE TRY AGAIN.',
         sender: 'bot',
         isTyping: false,
@@ -332,15 +334,16 @@ Keep responses concise and in an 80s arcade terminal style (ALL CAPS, friendly b
 
     if (message.sender === 'bot' && message.isTyping) {
       return (
-        <TextType
-          text={message.text}
-          typingSpeed={30}
-          showCursor={true}
-          cursorCharacter="█"
-          cursorBlinkDuration={0.5}
-          loop={false}
-          className="text-[#FFE66D]"
-        />
+        <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
+          {renderMessageWithLinks(message.text)}
+          <motion.span
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="ml-1 inline-block"
+          >
+            █
+          </motion.span>
+        </span>
       );
     }
 
