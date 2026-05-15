@@ -6,6 +6,7 @@ import About from './pages/About';
 import Terminal from './pages/Terminal';
 import Game from './pages/Game';
 import Gadgets from './pages/Gadgets';
+import Document from './pages/Document';
 
 function RedirectHandler() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ function App() {
           <Route path="projects" element={<Navigate to="/about" replace />} />
           <Route path="gadgets" element={<Gadgets />} />
           <Route path="terminal" element={<Terminal />} />
+          <Route path="documents/*" element={<Document />} />
           <Route path="game" element={<Game />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

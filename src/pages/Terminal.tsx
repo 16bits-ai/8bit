@@ -1,12 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ParallaxBackground from '../components/ParallaxBackground';
+import MarkdownDocumentContent from '../components/MarkdownDocumentContent';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Maximize2, RotateCcw, X } from 'lucide-react';
+import { findDocumentByPath } from '../data/documents';
 
 // Project Logos
 import NativePod from '../assets/projects/NativePod.png';
 import OOTD from '../assets/projects/OOTD.png';
 import patternizeLogo from '../assets/projects/Patternize.png';
 import carlTechReviewsLogo from '../assets/projects/CarlTechReview.png';
+
+const linkRegex =
+  /((?:https?:\/\/[^\s]+)|(?:www\.[^\s]+)|(?:\/(?:documents|pdf)\/[a-zA-Z0-9/_.-]+)|(?:[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+))/gi;
+const markdownLinkRegex =
+  /\[([^\]]+)\]\(((?:https?:\/\/[^\s)]+)|(?:www\.[^\s)]+)|(?:\/(?:documents|pdf)\/[a-zA-Z0-9/_.-]+)|(?:[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+))\)/gi;
+const terminalMessagesStorageKey = 'carlrocks-terminal-messages';
+
+interface MessageLink {
+  href: string;
+  label: string;
+  isExternal: boolean;
+}
 
 interface Message {
   id: string;
@@ -16,17 +31,103 @@ interface Message {
   type?: 'text' | 'projects';
 }
 
+const initialMessages: Message[] = [
+  {
+    id: '1',
+    text: 'HELLO! I\'M CARL. ASK ME ANYTHING ABOUT ME!',
+    sender: 'bot',
+    isTyping: false
+  }
+];
+
+const loadStoredMessages = () => {
+  try {
+    const storedMessages = window.localStorage.getItem(terminalMessagesStorageKey);
+    if (!storedMessages) return initialMessages;
+
+    const parsed = JSON.parse(storedMessages);
+    if (!Array.isArray(parsed)) return initialMessages;
+
+    const messages = parsed.filter((message): message is Message => (
+      typeof message?.id === 'string' &&
+      typeof message?.text === 'string' &&
+      (message?.sender === 'user' || message?.sender === 'bot') &&
+      (!message?.type || message.type === 'text' || message.type === 'projects')
+    ));
+
+    return messages.length
+      ? messages.map((message) => ({
+          ...message,
+          isTyping: false,
+        }))
+      : initialMessages;
+  } catch {
+    return initialMessages;
+  }
+};
+
+const formatLinkLabel = (href: string, label?: string) => {
+  if (label?.trim()) return label.trim();
+  if (href.startsWith('/pdf/')) return 'Open resume';
+  if (href.startsWith('/documents/')) {
+    const pathParts = href.split('/').filter(Boolean);
+    const slug = pathParts[pathParts.length - 1] ?? 'document';
+    return `Open ${slug.replace(/[-_]+/g, ' ')}`;
+  }
+  if (href.includes('@')) return 'Email Carl';
+  return href.replace(/^https?:\/\//, '').replace(/^www\./, '');
+};
+
+const normalizeHref = (href: string) => {
+  if (href.startsWith('www.')) return `https://${href}`;
+  if (/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/.test(href)) return `mailto:${href}`;
+  return href;
+};
+
+const collectMessageLinks = (text: string) => {
+  const links: MessageLink[] = [];
+  const seen = new Set<string>();
+
+  const addLink = (href: string, label?: string) => {
+    const normalizedHref = normalizeHref(href);
+    if (seen.has(normalizedHref)) return;
+    seen.add(normalizedHref);
+    links.push({
+      href: normalizedHref,
+      label: formatLinkLabel(href, label),
+      isExternal: normalizedHref.startsWith('http'),
+    });
+  };
+
+  text.replace(markdownLinkRegex, (_match, label: string, href: string) => {
+    addLink(href, label);
+    return '';
+  });
+
+  text.replace(linkRegex, (href) => {
+    addLink(href);
+    return '';
+  });
+
+  return links;
+};
+
+const stripLinksFromText = (text: string) =>
+  text
+    .replace(markdownLinkRegex, '$1')
+    .replace(linkRegex, '')
+    .replace(/^\s*(?:LINK|URL):\s*$/gim, '')
+    .replace(/\*\*\s*\*\*/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
 const Terminal: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'HELLO! I\'M CARL. ASK ME ANYTHING ABOUT ME!',
-      sender: 'bot',
-      isTyping: false
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(loadStoredMessages);
   const [inputValue, setInputValue] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+  const [activeDocumentPath, setActiveDocumentPath] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [viewportHeight, setViewportHeight] = useState<string | number>('100dvh');
@@ -62,6 +163,11 @@ const Terminal: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const storableMessages = messages.map((message) => ({ ...message, isTyping: false }));
+    window.localStorage.setItem(terminalMessagesStorageKey, JSON.stringify(storableMessages));
+  }, [messages]);
+
   // Keep input focused after sending message
   useEffect(() => {
     if (!isBotTyping && inputRef.current) {
@@ -92,9 +198,8 @@ const Terminal: React.FC = () => {
     let buffer = '';
 
     const appendDelta = (text: string) => {
-      const upper = text.toUpperCase();
       setMessages(prev =>
-        prev.map(msg => (msg.id === botMessageId ? { ...msg, text: msg.text + upper } : msg)),
+        prev.map(msg => (msg.id === botMessageId ? { ...msg, text: msg.text + text } : msg)),
       );
     };
 
@@ -159,6 +264,8 @@ const Terminal: React.FC = () => {
         isProjectResponse = true;
       } else if (messageText === defaultOptions[2] || messageText.toLowerCase().includes('github')) {
         cannedText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
+      } else if (/\b(resume|résumé|cv)\b/i.test(messageText)) {
+        cannedText = 'MY RESUME: /pdf/CARL-CV.pdf';
       }
 
       const botMessageId = (Date.now() + 1).toString();
@@ -232,6 +339,25 @@ const Terminal: React.FC = () => {
     sendMessage(optionText);
   };
 
+  const handleClearConversation = () => {
+    setMessages(initialMessages);
+    setInputValue('');
+    setIsConfirmingClear(false);
+    window.localStorage.removeItem(terminalMessagesStorageKey);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  };
+
+  const handleDocumentAction = (path: string) => {
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      window.location.href = path;
+      return;
+    }
+
+    setActiveDocumentPath(path);
+  };
+
   // Check if it's the initial conversation (no user messages yet)
   const hasUserMessages = messages.some(msg => msg.sender === 'user');
   const defaultOptions = [
@@ -242,17 +368,10 @@ const Terminal: React.FC = () => {
 
   // Helper to parse and render links in messages
   const renderMessageWithLinks = (text: string) => {
-    // Split by URLs or Email addresses
-    // Regex matches:
-    // 1. URLs starting with http/https
-    // 2. URLs starting with www.
-    // 3. Email addresses
-    const regex = /((?:https?:\/\/[^\s]+)|(?:www\.[^\s]+)|(?:[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+))/g;
-    
-    const parts = text.split(regex);
+    const parts = text.split(linkRegex);
     
     return parts.map((part, i) => {
-      if (part.match(/^(https?:\/\/|www\.)/)) {
+      if (part.match(/^(https?:\/\/|www\.)/i)) {
         const href = part.startsWith('www.') ? `https://${part}` : part;
         return (
           <a 
@@ -265,7 +384,17 @@ const Terminal: React.FC = () => {
             {part}
           </a>
         );
-      } else if (part.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/)) {
+      } else if (part.match(/^\/(?:documents|pdf)\//i)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+          >
+            {part}
+          </a>
+        );
+      } else if (part.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/i)) {
         return (
           <a 
             key={i} 
@@ -276,8 +405,54 @@ const Terminal: React.FC = () => {
           </a>
         );
       }
-      return <span key={i}>{part}</span>;
+      return <span key={i}>{part.toUpperCase()}</span>;
     });
+  };
+
+  const renderLinkActions = (links: MessageLink[]) => {
+    if (!links.length) return null;
+
+    return (
+      <div className="mt-4 space-y-2">
+        {links.map((link, index) => {
+          const label = (
+            <>
+              <span className="mr-2">{index + 1}.</span>
+              {link.label.toUpperCase()}
+            </>
+          );
+
+          if (link.href.startsWith('/documents/') && findDocumentByPath(link.href.replace(/^\/documents\/?/, ''))) {
+            return (
+              <button
+                key={link.href}
+                type="button"
+                onClick={() => handleDocumentAction(link.href)}
+                className={`block w-full border-2 px-3 py-2 text-left text-[0.55rem] leading-5 transition-all md:text-xs ${
+                  activeDocumentPath === link.href
+                    ? 'border-white bg-[#FFE66D] text-black'
+                    : 'border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          }
+
+          return (
+            <a
+              key={link.href}
+              href={link.href}
+              target={link.isExternal ? '_blank' : undefined}
+              rel={link.isExternal ? 'noopener noreferrer' : undefined}
+              className="block border-2 border-[#FFE66D] bg-black px-3 py-2 text-[0.55rem] leading-5 text-[#FFE66D] transition-all hover:bg-[#FFE66D] hover:text-black md:text-xs"
+            >
+              {label}
+            </a>
+          );
+        })}
+      </div>
+    );
   };
 
   const renderMessageContent = (message: Message) => {
@@ -332,27 +507,38 @@ const Terminal: React.FC = () => {
       );
     }
 
+    const messageLinks = message.sender === 'bot' ? collectMessageLinks(message.text) : [];
+    const displayText = message.sender === 'bot' ? stripLinksFromText(message.text) : message.text;
+
     if (message.sender === 'bot' && message.isTyping) {
       return (
-        <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
-          {renderMessageWithLinks(message.text)}
-          <motion.span
-            animate={{ opacity: [1, 0, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="ml-1 inline-block"
-          >
-            █
-          </motion.span>
-        </span>
+        <div className="text-[#FFE66D] break-words whitespace-pre-wrap">
+          <span>
+            {renderMessageWithLinks(displayText)}
+            <motion.span
+              animate={{ opacity: [1, 0, 1] }}
+              transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="ml-1 inline-block"
+            >
+              █
+            </motion.span>
+          </span>
+          {renderLinkActions(messageLinks)}
+        </div>
       );
     }
 
     return (
-      <span className="text-[#FFE66D] break-words whitespace-pre-wrap">
-        {renderMessageWithLinks(message.text)}
-      </span>
+      <div className="text-[#FFE66D] break-words whitespace-pre-wrap">
+        {renderMessageWithLinks(displayText)}
+        {renderLinkActions(messageLinks)}
+      </div>
     );
   };
+
+  const activeDocument = activeDocumentPath
+    ? findDocumentByPath(activeDocumentPath.replace(/^\/documents\/?/, ''))
+    : null;
 
   return (
     <div 
@@ -364,10 +550,20 @@ const Terminal: React.FC = () => {
     >
       <ParallaxBackground color="#FFE66D" variant="lines" />
 
-      <div className="relative z-10 container mx-auto px-4 py-2 md:py-6 flex items-center h-full" style={{ minHeight: 0, paddingBottom: '70px', paddingTop: '30px' }}>
-        <div className="max-w-4xl mx-auto w-full h-full flex flex-col" style={{ minHeight: 0 }}>
+      <div
+        className="relative z-10 mx-auto flex h-full w-full max-w-[1800px] items-center px-4 py-2 md:px-6 md:py-6"
+        style={{ minHeight: 0, paddingBottom: '70px', paddingTop: '30px' }}
+      >
+        <div
+          className="relative mx-auto h-full w-full"
+          style={{ minHeight: 0 }}
+        >
           <div
-            className="border-4 border-[#FFE66D] bg-black/90 p-4 md:p-8 flex flex-col flex-1"
+            className={`flex h-full w-full flex-col border-4 border-[#FFE66D] bg-black/90 p-4 transition-[left,width,max-width,transform] duration-500 ease-out md:absolute md:bottom-0 md:top-0 md:p-8 ${
+              activeDocument
+                ? 'md:left-0 md:w-[38%] md:max-w-[620px] md:translate-x-0'
+                : 'md:left-1/2 md:w-full md:max-w-4xl md:-translate-x-1/2'
+            }`}
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#FFE66D',
@@ -484,6 +680,17 @@ const Terminal: React.FC = () => {
                   autoFocus
                 />
                 <button
+                  type="button"
+                  disabled={isBotTyping || !hasUserMessages}
+                  onClick={() => setIsConfirmingClear(true)}
+                  aria-label="Clear conversation history"
+                  title="Clear conversation history"
+                  className="px-2 md:px-3 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
+                  style={{ fontFamily: '"Press Start 2P", cursive' }}
+                >
+                  <RotateCcw size={16} strokeWidth={2.5} />
+                </button>
+                <button
                   type="submit"
                   disabled={!inputValue.trim() || isBotTyping}
                   className="px-2 md:px-4 lg:px-6 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
@@ -494,8 +701,109 @@ const Terminal: React.FC = () => {
               </div>
             </form>
           </div>
+
+          <AnimatePresence>
+            {activeDocument && activeDocumentPath && (
+            <motion.aside
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 16 }}
+              transition={{ type: 'spring', stiffness: 180, damping: 28 }}
+              className="hidden border-4 border-[#FFE66D] bg-black/95 text-[#FFE66D] shadow-[0_0_24px_rgba(255,230,109,0.2)] md:absolute md:bottom-0 md:right-0 md:top-0 md:flex md:w-[calc(62%_-_1rem)] md:flex-col"
+              style={{ minHeight: 0 }}
+            >
+              <div className="flex items-start justify-between gap-4 border-b-2 border-[#FFE66D] p-4">
+                <div className="min-w-0">
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {activeDocument.tags.slice(0, 4).map(tag => (
+                      <span
+                        key={tag}
+                        className="border border-[#FFE66D] px-2 py-1 text-[0.48rem]"
+                        style={{ fontFamily: '"Press Start 2P", cursive' }}
+                      >
+                        {tag.toUpperCase()}
+                      </span>
+                    ))}
+                  </div>
+                  <h2
+                    className="text-sm leading-6 md:text-base"
+                    style={{ fontFamily: '"Press Start 2P", cursive' }}
+                  >
+                    {activeDocument.title.toUpperCase()}
+                  </h2>
+                  <p className="mt-2 text-xs text-[#FFE66D]/70">{activeDocument.date}</p>
+                </div>
+                <div className="flex flex-shrink-0 gap-2">
+                  <a
+                    href={activeDocumentPath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open document in new tab"
+                    title="Open document in new tab"
+                    className="border-2 border-[#FFE66D] bg-black p-2 text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black"
+                  >
+                    <Maximize2 size={16} strokeWidth={2.5} />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDocumentPath(null)}
+                    aria-label="Close document pane"
+                    title="Close document pane"
+                    className="border-2 border-[#FFE66D] bg-black p-2 text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black"
+                  >
+                    <X size={16} strokeWidth={2.5} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5 terminal-scrollbar">
+                <MarkdownDocumentContent markdown={activeDocument.content} compact />
+              </div>
+            </motion.aside>
+            )}
+          </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isConfirmingClear && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-lg border-4 border-[#FFE66D] bg-black p-5 text-[#FFE66D] shadow-[0_0_24px_rgba(255,230,109,0.35)] md:p-8"
+              initial={{ scale: 0.95, y: 12 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 12 }}
+              style={{ fontFamily: '"Press Start 2P", cursive' }}
+            >
+              <h2 className="mb-4 text-sm md:text-base">CLEAR CONVERSATION?</h2>
+              <p className="mb-6 text-[0.6rem] leading-6 md:text-xs">
+                THIS WILL DELETE YOUR SAVED TERMINAL CHAT HISTORY ON THIS DEVICE.
+              </p>
+              <div className="flex flex-col gap-3 md:flex-row md:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingClear(false)}
+                  className="border-2 border-[#FFE66D] bg-black px-4 py-3 text-xs text-[#FFE66D] hover:bg-[#FFE66D]/10"
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearConversation}
+                  className="border-2 border-[#FFE66D] bg-[#FFE66D] px-4 py-3 text-xs text-black hover:bg-white"
+                >
+                  CLEAR
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

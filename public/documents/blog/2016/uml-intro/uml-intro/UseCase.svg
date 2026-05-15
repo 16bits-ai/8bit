@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.1"
+   width="513"
+   height="304"
+   id="svg2">
+  <defs
+     id="defs4" />
+  <g
+     transform="translate(-112.07143,-317.50504)"
+     id="layer1">
+    <rect
+       width="189.24503"
+       height="261.72186"
+       x="155.69095"
+       y="18.119205"
+       transform="translate(112.07143,317.50504)"
+       id="rect2830"
+       style="fill:none;stroke:#000000;stroke-opacity:1" />
+    <text
+       x="362.31458"
+       y="352.40128"
+       id="text3604"
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+         x="362.31458"
+         y="352.40128"
+         id="tspan3606"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Restaurant (simplified)</tspan></text>
+    <path
+       d="m 182.00472,425.17614 0,41.7649 -13.92164,18.79028 m 13.92164,-18.54025 11.466,15.64351 m -31.02188,-39.24135 39.77164,-13.52236 m -6.12305,-18.98745 c 0,7.7832 -6.30952,14.09272 -14.09271,14.09272 -7.78319,0 -14.09272,-6.30952 -14.09272,-14.09272 0,-7.78319 6.30953,-14.09271 14.09272,-14.09271 7.78319,0 14.09271,6.30952 14.09271,14.09271 z"
+       id="path3610"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       x="182.33467"
+       y="502.19012"
+       id="text3614"
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+         x="182.33467"
+         y="502.19012"
+         id="tspan3616">Food Critic</tspan></text>
+    <use
+       transform="translate(381.84547,1.3421634)"
+       id="use3618"
+       x="0"
+       y="0"
+       width="513"
+       height="304"
+       xlink:href="#path3610" />
+    <text
+       x="563.8017"
+       y="503.17114"
+       id="text3614-2"
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+         x="563.8017"
+         y="503.17114"
+         id="tspan3616-7">Chef</tspan></text>
+    <g
+       transform="translate(0,-7.552618)"
+       id="g3720">
+      <text
+         x="362.34387"
+         y="399.82416"
+         id="text3645"
+         xml:space="preserve"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+           x="362.34387"
+           y="399.82416"
+           id="tspan3647">Eat Food</tspan></text>
+      <path
+         d="m 306.01324,80.5298 a 51.67329,26.172186 0 1 1 -103.34658,0 51.67329,26.172186 0 1 1 103.34658,0 z"
+         transform="translate(108.04494,314.82071)"
+         id="path3661"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    </g>
+    <g
+       transform="translate(0,-6)"
+       id="g3705">
+      <text
+         x="362.59583"
+         y="576.98969"
+         id="text3657"
+         xml:space="preserve"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+           x="362.59583"
+           y="576.98969"
+           id="tspan3659">Cook Food</tspan></text>
+      <path
+         d="m 306.01324,80.5298 a 51.67329,26.172186 0 1 1 -103.34658,0 51.67329,26.172186 0 1 1 103.34658,0 z"
+         transform="translate(108.04494,491.98627)"
+         id="path3661-4"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    </g>
+    <g
+       transform="translate(0,-14.570524)"
+       id="g3710">
+      <text
+         x="362.12122"
+         y="525.98749"
+         id="text3653"
+         xml:space="preserve"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+           x="362.12122"
+           y="525.98749"
+           id="tspan3655">Drink Wine</tspan></text>
+      <path
+         d="m 306.01324,80.5298 a 51.67329,26.172186 0 1 1 -103.34658,0 51.67329,26.172186 0 1 1 103.34658,0 z"
+         transform="translate(108.04494,440.98407)"
+         id="path3661-9"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    </g>
+    <g
+       transform="translate(0,-10.390495)"
+       id="g3715">
+      <text
+         x="362.34387"
+         y="461.02478"
+         id="text3649"
+         xml:space="preserve"
+         style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+           x="362.34387"
+           y="461.02478"
+           id="tspan3651">Pay for Food</tspan></text>
+      <path
+         d="m 306.01324,80.5298 a 51.67329,26.172186 0 1 1 -103.34658,0 51.67329,26.172186 0 1 1 103.34658,0 z"
+         transform="translate(108.04494,377.23131)"
+         id="path3661-8"
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    </g>
+    <path
+       d="m 116.09713,110.72848 79.18764,-32.883005 m -77.17439,56.370865 74.49006,-2.01325 m -72.47682,32.883 75.83223,16.77704 m 227.49669,-35.56732 -117.43929,92.60927"
+       transform="translate(112.07143,317.50504)"
+       id="path3725"
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+  </g>
+</svg>
