@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import JourneyVisualization from '../components/JourneyVisualization';
 import ParallaxBackground from '../components/ParallaxBackground';
 import MarkdownDocumentContent from '../components/MarkdownDocumentContent';
 import { findDocumentByPath } from '../data/documents';
@@ -54,7 +55,13 @@ const Document = () => {
           </p>
         </header>
 
-        <MarkdownDocumentContent markdown={document.content} />
+        {document.path === '/documents/lifestyle/journey' ? (
+          <div className="h-[75vh]">
+            <JourneyVisualization />
+          </div>
+        ) : (
+          <MarkdownDocumentContent markdown={document.content} />
+        )}
 
         <footer className="mt-10 border-t-2 border-[#FFE66D] pt-5 text-xs text-[#FFE66D]/70">
           IMPORTED FROM {document.sourceFolder}

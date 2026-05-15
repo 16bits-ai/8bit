@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ParallaxBackground from '../components/ParallaxBackground';
+import JourneyVisualization from '../components/JourneyVisualization';
 import MarkdownDocumentContent from '../components/MarkdownDocumentContent';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Maximize2, RotateCcw, X } from 'lucide-react';
@@ -84,6 +85,8 @@ const normalizeHref = (href: string) => {
   return href;
 };
 
+const isEmailHref = (href: string) => href.startsWith('mailto:') || /^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/.test(href);
+
 const collectMessageLinks = (text: string) => {
   const links: MessageLink[] = [];
   const seen = new Set<string>();
@@ -100,11 +103,13 @@ const collectMessageLinks = (text: string) => {
   };
 
   text.replace(markdownLinkRegex, (_match, label: string, href: string) => {
+    if (isEmailHref(href)) return '';
     addLink(href, label);
     return '';
   });
 
   text.replace(linkRegex, (href) => {
+    if (isEmailHref(href)) return '';
     addLink(href);
     return '';
   });
@@ -112,22 +117,13 @@ const collectMessageLinks = (text: string) => {
   return links;
 };
 
-const stripLinksFromText = (text: string) =>
-  text
-    .replace(markdownLinkRegex, '$1')
-    .replace(linkRegex, '')
-    .replace(/^\s*(?:LINK|URL):\s*$/gim, '')
-    .replace(/\*\*\s*\*\*/g, '')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-
 const Terminal: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(loadStoredMessages);
   const [inputValue, setInputValue] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const [activeDocumentPath, setActiveDocumentPath] = useState<string | null>(null);
+  const [isJourneyPaneOpen, setIsJourneyPaneOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [viewportHeight, setViewportHeight] = useState<string | number>('100dvh');
@@ -257,13 +253,18 @@ const Terminal: React.FC = () => {
       // Default-option shortcuts: instant canned responses, no API hit.
       let cannedText = '';
       let isProjectResponse = false;
+      let shouldOpenJourneyPane = false;
       if (messageText === defaultOptions[0] || messageText.toLowerCase().includes('email')) {
         cannedText = 'YOU CAN EMAIL ME AT: csliu@stanford.edu';
       } else if (messageText === defaultOptions[1] || messageText.toLowerCase().includes('project')) {
         cannedText = 'HERE ARE MY CURRENT PROJECTS:';
         isProjectResponse = true;
-      } else if (messageText === defaultOptions[2] || messageText.toLowerCase().includes('github')) {
-        cannedText = 'MY GITHUB PROFILE: https://github.com/gazcn007';
+      } else if (
+        messageText === defaultOptions[2] ||
+        /\b(places|travel|journey|visited|been)\b/i.test(messageText)
+      ) {
+        cannedText = 'HERE IS MY WORLD JOURNEY MAP';
+        shouldOpenJourneyPane = true;
       } else if (/\b(resume|résumé|cv)\b/i.test(messageText)) {
         cannedText = 'MY RESUME: /pdf/CARL-CV.pdf';
       }
@@ -271,6 +272,8 @@ const Terminal: React.FC = () => {
       const botMessageId = (Date.now() + 1).toString();
 
       if (cannedText) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         const botResponse: Message = {
           id: botMessageId,
           text: cannedText,
@@ -279,6 +282,14 @@ const Terminal: React.FC = () => {
           type: isProjectResponse ? 'projects' : 'text',
         };
         setMessages(prev => [...prev, botResponse]);
+        if (shouldOpenJourneyPane) {
+          if (window.matchMedia('(max-width: 767px)').matches) {
+            window.location.href = '/documents/lifestyle/journey';
+          } else {
+            setActiveDocumentPath(null);
+            setIsJourneyPaneOpen(true);
+          }
+        }
         setIsBotTyping(false);
         const typingDuration = isProjectResponse ? 500 : cannedText.length * 30 + 500;
         setTimeout(() => {
@@ -356,6 +367,17 @@ const Terminal: React.FC = () => {
     }
 
     setActiveDocumentPath(path);
+    setIsJourneyPaneOpen(false);
+  };
+
+  const handleJourneyAction = () => {
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      window.location.href = '/documents/lifestyle/journey';
+      return;
+    }
+
+    setActiveDocumentPath(null);
+    setIsJourneyPaneOpen(true);
   };
 
   // Check if it's the initial conversation (no user messages yet)
@@ -363,8 +385,11 @@ const Terminal: React.FC = () => {
   const defaultOptions = [
     'What is your email?',
     'What projects are you working on?',
-    'What is your github?'
+    'What places have you been to?'
   ];
+
+  const isJourneyMapMessage = (message: Message) =>
+    message.sender === 'bot' && message.text.trim().toUpperCase() === 'HERE IS MY WORLD JOURNEY MAP';
 
   // Helper to parse and render links in messages
   const renderMessageWithLinks = (text: string) => {
@@ -410,11 +435,12 @@ const Terminal: React.FC = () => {
   };
 
   const renderLinkActions = (links: MessageLink[]) => {
-    if (!links.length) return null;
+    const recommendedLinks = links.slice(0, 3);
+    if (!recommendedLinks.length) return null;
 
     return (
       <div className="mt-4 space-y-2">
-        {links.map((link, index) => {
+        {recommendedLinks.map((link, index) => {
           const label = (
             <>
               <span className="mr-2">{index + 1}.</span>
@@ -503,12 +529,20 @@ const Terminal: React.FC = () => {
               </div>
             </a>
           ))}
+          <a
+            href="https://github.com/gazcn007"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block border-2 border-[#FFE66D] bg-black p-3 text-[0.6rem] leading-5 text-[#FFE66D] transition-all hover:bg-[#FFE66D] hover:text-black md:text-xs"
+          >
+            VISIT MY GITHUB FOR MORE INFO
+          </a>
         </div>
       );
     }
 
     const messageLinks = message.sender === 'bot' ? collectMessageLinks(message.text) : [];
-    const displayText = message.sender === 'bot' ? stripLinksFromText(message.text) : message.text;
+    const displayText = message.text;
 
     if (message.sender === 'bot' && message.isTyping) {
       return (
@@ -539,6 +573,7 @@ const Terminal: React.FC = () => {
   const activeDocument = activeDocumentPath
     ? findDocumentByPath(activeDocumentPath.replace(/^\/documents\/?/, ''))
     : null;
+  const isSidePaneOpen = Boolean(activeDocument || isJourneyPaneOpen);
 
   return (
     <div 
@@ -560,7 +595,7 @@ const Terminal: React.FC = () => {
         >
           <div
             className={`flex h-full w-full flex-col border-4 border-[#FFE66D] bg-black/90 p-4 transition-[left,width,max-width,transform] duration-500 ease-out md:absolute md:bottom-0 md:top-0 md:p-8 ${
-              activeDocument
+              isSidePaneOpen
                 ? 'md:left-0 md:w-[38%] md:max-w-[620px] md:translate-x-0'
                 : 'md:left-1/2 md:w-full md:max-w-4xl md:-translate-x-1/2'
             }`}
@@ -581,20 +616,27 @@ const Terminal: React.FC = () => {
                     exit={{ opacity: 0 }}
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div
-                      className={`max-w-[90%] md:max-w-[85%] p-3 border-2 ${
+                    <button
+                      type="button"
+                      disabled={!isJourneyMapMessage(message)}
+                      onClick={() => {
+                        if (isJourneyMapMessage(message)) handleJourneyAction();
+                      }}
+                      className={`max-w-[90%] md:max-w-[85%] p-3 border-2 text-left disabled:cursor-default ${
                         message.sender === 'user'
                           ? 'border-[#FFE66D] bg-[#FFE66D]/10'
                           : 'border-[#FFE66D] bg-black'
-                      }`}
+                      } ${isJourneyMapMessage(message) ? 'cursor-pointer transition-colors hover:bg-[#FFE66D]/10 hover:shadow-[0_0_12px_rgba(255,230,109,0.35)]' : ''}`}
                       style={{
                         wordBreak: 'break-word',
                         fontSize: '0.6rem',
-                        lineHeight: '1.6'
+                        lineHeight: '1.6',
+                        fontFamily: '"Press Start 2P", cursive',
+                        color: '#FFE66D'
                       }}
                     >
                       {renderMessageContent(message)}
-                    </div>
+                    </button>
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -703,39 +745,43 @@ const Terminal: React.FC = () => {
           </div>
 
           <AnimatePresence>
-            {activeDocument && activeDocumentPath && (
+            {isSidePaneOpen && (
             <motion.aside
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
+              initial={{ x: '110%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '110%' }}
               transition={{ type: 'spring', stiffness: 180, damping: 28 }}
               className="hidden border-4 border-[#FFE66D] bg-black/95 text-[#FFE66D] shadow-[0_0_24px_rgba(255,230,109,0.2)] md:absolute md:bottom-0 md:right-0 md:top-0 md:flex md:w-[calc(62%_-_1rem)] md:flex-col"
               style={{ minHeight: 0 }}
             >
               <div className="flex items-start justify-between gap-4 border-b-2 border-[#FFE66D] p-4">
                 <div className="min-w-0">
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    {activeDocument.tags.slice(0, 4).map(tag => (
-                      <span
-                        key={tag}
-                        className="border border-[#FFE66D] px-2 py-1 text-[0.48rem]"
-                        style={{ fontFamily: '"Press Start 2P", cursive' }}
-                      >
-                        {tag.toUpperCase()}
-                      </span>
-                    ))}
-                  </div>
+                  {activeDocument && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {activeDocument.tags.slice(0, 4).map(tag => (
+                        <span
+                          key={tag}
+                          className="border border-[#FFE66D] px-2 py-1 text-[0.48rem]"
+                          style={{ fontFamily: '"Press Start 2P", cursive' }}
+                        >
+                          {tag.toUpperCase()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <h2
                     className="text-sm leading-6 md:text-base"
                     style={{ fontFamily: '"Press Start 2P", cursive' }}
                   >
-                    {activeDocument.title.toUpperCase()}
+                    {(activeDocument?.title ?? 'World Journey').toUpperCase()}
                   </h2>
-                  <p className="mt-2 text-xs text-[#FFE66D]/70">{activeDocument.date}</p>
+                  <p className="mt-2 text-xs text-[#FFE66D]/70">
+                    {activeDocument?.date ?? 'PLACES, PHOTOS, AND LIFE TIMELINE'}
+                  </p>
                 </div>
                 <div className="flex flex-shrink-0 gap-2">
                   <a
-                    href={activeDocumentPath}
+                    href={activeDocumentPath ?? '/documents/lifestyle/journey'}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Open document in new tab"
@@ -746,7 +792,10 @@ const Terminal: React.FC = () => {
                   </a>
                   <button
                     type="button"
-                    onClick={() => setActiveDocumentPath(null)}
+                    onClick={() => {
+                      setActiveDocumentPath(null);
+                      setIsJourneyPaneOpen(false);
+                    }}
                     aria-label="Close document pane"
                     title="Close document pane"
                     className="border-2 border-[#FFE66D] bg-black p-2 text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black"
@@ -756,8 +805,12 @@ const Terminal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5 terminal-scrollbar">
-                <MarkdownDocumentContent markdown={activeDocument.content} compact />
+              <div className="flex-1 overflow-y-auto p-5 terminal-scrollbar" style={{ minHeight: 0 }}>
+                {activeDocument ? (
+                  <MarkdownDocumentContent markdown={activeDocument.content} compact />
+                ) : (
+                  <JourneyVisualization />
+                )}
               </div>
             </motion.aside>
             )}
