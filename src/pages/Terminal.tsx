@@ -616,11 +616,16 @@ const Terminal: React.FC = () => {
                     exit={{ opacity: 0 }}
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <button
-                      type="button"
-                      disabled={!isJourneyMapMessage(message)}
-                      onClick={() => {
-                        if (isJourneyMapMessage(message)) handleJourneyAction();
+                    <div
+                      role={isJourneyMapMessage(message) ? 'button' : undefined}
+                      tabIndex={isJourneyMapMessage(message) ? 0 : undefined}
+                      onClick={isJourneyMapMessage(message) ? handleJourneyAction : undefined}
+                      onKeyDown={(event) => {
+                        if (!isJourneyMapMessage(message)) return;
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          handleJourneyAction();
+                        }
                       }}
                       className={`max-w-[90%] md:max-w-[85%] p-3 border-2 text-left disabled:cursor-default ${
                         message.sender === 'user'
@@ -636,7 +641,7 @@ const Terminal: React.FC = () => {
                       }}
                     >
                       {renderMessageContent(message)}
-                    </button>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
