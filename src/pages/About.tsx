@@ -82,7 +82,7 @@ const About: React.FC = () => {
                   }}
                 />
                   <div className="flex-1">
-                    <h3 className="text-lg md:text-xl mb-1">HEAD OF PRODUCT</h3>
+                    <h3 className="text-lg md:text-xl mb-1">HEAD OF ENGINEERING</h3>
                     <p className="text-xs opacity-80">Presence (VC-backed startup)</p>
                     <p className="text-xs opacity-80">San Francisco, USA • 2022-2025</p>
                   </div>
