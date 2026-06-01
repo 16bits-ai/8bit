@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
+import GameBoyControls from '../components/GameBoyControls';
+import { useIsMobile } from '../hooks/useIsMobile';
 import walkingGif from '../assets/characters/walking.gif';
 import marioBlock from '../assets/items/mario-block.gif';
 import brick from '../assets/items/brick.png';
 import { levels, getAllEventImages, type Event } from '../data/levels';
 
 const Game: React.FC = () => {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
   // Load saved level from localStorage on mount, or start at 0
   const [currentLevel, setCurrentLevel] = useState(() => {
     const savedLevel = localStorage.getItem('gameCurrentLevel');
@@ -28,7 +33,6 @@ const Game: React.FC = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const levelCompleteTriggered = useRef(false);
   const keysPressed = useRef<Set<string>>(new Set());
   const movementIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,24 +46,6 @@ const Game: React.FC = () => {
     const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.mkv'];
     return videoExtensions.some(ext => src.toLowerCase().endsWith(ext));
   };
-
-  // Detect mobile/tablet devices
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isIPad = /ipad/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      const isMobileDevice = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isSmallScreen = window.innerWidth < 1024;
-      
-      // Consider it mobile if it's a touch device (iPad, mobile) OR small screen
-      setIsMobile(isIPad || isMobileDevice || (isTouchDevice && isSmallScreen));
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Preload all event images and videos
   useEffect(() => {
@@ -485,42 +471,42 @@ const Game: React.FC = () => {
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
 
-      <div className="absolute top-8 left-8 right-8 flex justify-between items-start z-20">
+      <div className="absolute top-3 left-3 right-3 sm:top-8 sm:left-8 sm:right-8 flex justify-between items-start gap-2 z-20">
         <div
-          className="px-6 py-3 bg-black/30 backdrop-blur-sm rounded"
+          className="min-w-0 px-2.5 py-2 sm:px-6 sm:py-3 bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFFFFF',
             textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
-          <div className="text-sm mb-2">LEVEL {level.id}</div>
-          <div className="text-2xl">{level.name}</div>
-          <div className="text-xs mt-2 opacity-80">{level.year}</div>
+          <div className="text-[9px] sm:text-sm mb-1 sm:mb-2">LEVEL {level.id}</div>
+          <div className="text-sm sm:text-2xl break-words">{level.name}</div>
+          <div className="text-[8px] sm:text-xs mt-1 sm:mt-2 opacity-80">{level.year}</div>
         </div>
 
         <div
-          className="px-6 py-4 text-center bg-black/30 backdrop-blur-sm rounded"
+          className="min-w-0 px-2.5 py-2 sm:px-6 sm:py-4 text-center bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFFFFF',
             textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
-          <div className="text-xs mb-2">MISSION:</div>
-          <div className="text-sm">{level.mission}</div>
+          <div className="text-[8px] sm:text-xs mb-1 sm:mb-2">MISSION:</div>
+          <div className="text-[9px] sm:text-sm break-words">{level.mission}</div>
         </div>
 
         <div
-          className="px-6 py-3 text-right bg-black/30 backdrop-blur-sm rounded"
+          className="min-w-0 px-2.5 py-2 sm:px-6 sm:py-3 text-right bg-black/30 backdrop-blur-sm rounded"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFFFFF',
             textShadow: '2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000'
           }}
         >
-          <div className="text-xs mb-2">MISSING EVENTS</div>
-          <div className="text-lg">
+          <div className="text-[8px] sm:text-xs mb-1 sm:mb-2">MISSING EVENTS</div>
+          <div className="text-xs sm:text-lg">
             {(() => {
               const totalBlocks = level.blocks.length;
               const discoveredBlocks = Array.from(hitBlocks).filter(
@@ -640,61 +626,14 @@ const Game: React.FC = () => {
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#4a2c2a] z-10 border-t-4 border-[#654321]" />
 
       {isMobile ? (
-        <div className="absolute top-40 left-4 right-4 z-30 flex items-start justify-between pointer-events-none">
-          {/* Left/Right Movement Buttons */}
-          <div className="flex gap-4 pointer-events-auto">
-            <motion.button
-              onTouchStart={handleMoveLeft}
-              onTouchEnd={handleStopLeft}
-              onMouseDown={handleMoveLeft}
-              onMouseUp={handleStopLeft}
-              onMouseLeave={handleStopLeft}
-              className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 touch-manipulation"
-              whileTap={{ scale: 0.9 }}
-              style={{
-                fontFamily: '"Press Start 2P", cursive',
-                color: '#FFFFFF',
-                textShadow: '2px 2px 0px #000000',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-            >
-              <ArrowLeft size={36} />
-            </motion.button>
-            <motion.button
-              onTouchStart={handleMoveRight}
-              onTouchEnd={handleStopRight}
-              onMouseDown={handleMoveRight}
-              onMouseUp={handleStopRight}
-              onMouseLeave={handleStopRight}
-              className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 touch-manipulation"
-              whileTap={{ scale: 0.9 }}
-              style={{
-                fontFamily: '"Press Start 2P", cursive',
-                color: '#FFFFFF',
-                textShadow: '2px 2px 0px #000000',
-                WebkitTapHighlightColor: 'transparent'
-              }}
-            >
-              <ArrowRight size={36} />
-            </motion.button>
-          </div>
-
-          {/* Jump Button */}
-          <motion.button
-            onTouchStart={handleJump}
-            onMouseDown={handleJump}
-            className="p-5 bg-black/70 backdrop-blur-sm rounded-full border-4 border-white/90 active:bg-black/90 pointer-events-auto touch-manipulation"
-            whileTap={{ scale: 0.9 }}
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#FFFFFF',
-              textShadow: '2px 2px 0px #000000',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            <ArrowUp size={36} />
-          </motion.button>
-        </div>
+        <GameBoyControls
+          onLeftStart={handleMoveLeft}
+          onLeftEnd={handleStopLeft}
+          onRightStart={handleMoveRight}
+          onRightEnd={handleStopRight}
+          onJump={handleJump}
+          onHome={() => navigate('/')}
+        />
       ) : (
         <div
           className="absolute top-32 right-8 z-20 text-right bg-black/30 backdrop-blur-sm rounded px-4 py-2"

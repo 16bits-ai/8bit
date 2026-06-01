@@ -73,64 +73,43 @@ const Home: React.FC = () => {
             START YOUR ADVENTURE
           </motion.p>
 
-          {isMobile ? (
-            <motion.div
-              className="px-4 py-6 border-4 border-[#00FF41] bg-black/80 backdrop-blur-sm max-w-md mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+          >
+            <motion.button
+              className="px-8 py-4 border-4 border-[#00FF41] bg-black text-[#00FF41] font-bold text-lg tracking-wider"
+              style={{ fontFamily: '"Press Start 2P", cursive' }}
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: '#00FF41',
+                color: '#000000',
+                boxShadow: '0 0 20px #00FF41'
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                localStorage.removeItem('gameCurrentLevel');
+                navigate('/game');
+              }}
             >
-              <motion.p
-                className="text-xs sm:text-sm text-center leading-relaxed"
-                style={{
-                  fontFamily: '"Press Start 2P", cursive',
-                  color: '#00FF41',
-                  textShadow: '0 0 5px #00FF41',
-                  lineHeight: '1.8'
-                }}
-              >
-                THIS GAME REQUIRES A COMPUTER TO PLAY. PLEASE USE A DESKTOP OR LAPTOP TO START YOUR ADVENTURE.
-              </motion.p>
-            </motion.div>
-          ) : (
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-            >
-              <motion.button
-                className="px-8 py-4 border-4 border-[#00FF41] bg-black text-[#00FF41] font-bold text-lg tracking-wider"
-                style={{ fontFamily: '"Press Start 2P", cursive' }}
-                whileHover={{
-                  scale: 1.05,
-                  backgroundColor: '#00FF41',
-                  color: '#000000',
-                  boxShadow: '0 0 20px #00FF41'
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  localStorage.removeItem('gameCurrentLevel');
-                  navigate('/game');
-                }}
-              >
-                PRESS START
-              </motion.button>
+              PRESS START
+            </motion.button>
 
-              <motion.button
-                className="px-8 py-4 border-4 border-[#00FF41] bg-transparent text-[#00FF41] font-bold text-lg tracking-wider"
-                style={{ fontFamily: '"Press Start 2P", cursive' }}
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: '0 0 20px #00FF41'
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/game')}
-              >
-                CONTINUE
-              </motion.button>
-            </motion.div>
-          )}
+            <motion.button
+              className="px-8 py-4 border-4 border-[#00FF41] bg-transparent text-[#00FF41] font-bold text-lg tracking-wider"
+              style={{ fontFamily: '"Press Start 2P", cursive' }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: '0 0 20px #00FF41'
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/game')}
+            >
+              CONTINUE
+            </motion.button>
+          </motion.div>
         </motion.div>
 
         {!isMobile && (

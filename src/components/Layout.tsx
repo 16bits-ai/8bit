@@ -1,10 +1,17 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Dock, { DockItemData } from './Dock';
 import { Home, User, TerminalSquare, Package } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useIsMobile();
+
+  // On mobile, the game shows its own on-screen Game Boy controls along the
+  // bottom of the screen, so the nav dock would collide with them. Hide it there.
+  const hideDock = isMobile && location.pathname === '/game';
 
   const dockItems: DockItemData[] = [
     {
@@ -35,15 +42,17 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-2">
-        <Dock
-          items={dockItems}
-          magnification={60}
-          distance={150}
-          baseItemSize={42}
-          panelHeight={56}
-        />
-      </div>
+      {!hideDock && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-2">
+          <Dock
+            items={dockItems}
+            magnification={60}
+            distance={150}
+            baseItemSize={42}
+            panelHeight={56}
+          />
+        </div>
+      )}
     </div>
   );
 };
