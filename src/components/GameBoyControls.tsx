@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Home as HomeIcon } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ArrowBigUp, Home as HomeIcon } from 'lucide-react';
 
 interface GameBoyControlsProps {
   onLeftStart: () => void;
@@ -118,42 +118,28 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
         </div>
       </div>
 
-      {/* Center HOME button (sits where Start/Select would be on a Game Boy) */}
-      <div className="pointer-events-auto flex items-end pb-1">
+      {/* Action buttons: home + jump */}
+      <div className="pointer-events-auto flex items-end gap-4">
         <motion.button
           aria-label="Home"
           data-gb-home
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.88 }}
           onClick={onHome}
           onContextMenu={(e) => e.preventDefault()}
-          className="flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-black/80 border-2 border-[#00FF41]/80 text-[#00FF41] backdrop-blur-sm"
-          style={{ fontFamily: '"Press Start 2P", cursive' }}
-        >
-          <HomeIcon size={16} strokeWidth={2.5} />
-          <span className="text-[7px] leading-none">HOME</span>
-        </motion.button>
-      </div>
-
-      {/* A / B action buttons (both jump) */}
-      <div className="pointer-events-auto flex items-end gap-4">
-        <motion.button
-          aria-label="Jump (B)"
-          whileTap={{ scale: 0.88 }}
           className="flex items-center justify-center w-16 h-16 rounded-full bg-black/80 border-4 border-[#00FF41] text-[#00FF41] backdrop-blur-sm"
-          style={{ boxShadow: `0 0 10px ${NEON}`, fontFamily: '"Press Start 2P", cursive' }}
-          {...tapHandlers(onJump)}
+          style={{ boxShadow: `0 0 10px ${NEON}` }}
         >
-          <span className="text-lg leading-none">B</span>
+          <HomeIcon size={26} strokeWidth={2.5} />
         </motion.button>
 
         <motion.button
-          aria-label="Jump (A)"
+          aria-label="Jump"
           whileTap={{ scale: 0.88 }}
           className="flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-black/80 border-4 border-[#00FF41] text-[#00FF41] backdrop-blur-sm"
-          style={{ boxShadow: `0 0 10px ${NEON}`, fontFamily: '"Press Start 2P", cursive' }}
+          style={{ boxShadow: `0 0 10px ${NEON}` }}
           {...tapHandlers(onJump)}
         >
-          <span className="text-lg leading-none">A</span>
+          <ArrowBigUp size={32} strokeWidth={2.5} />
         </motion.button>
       </div>
     </div>
