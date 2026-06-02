@@ -41,6 +41,21 @@ body {
   image-rendering: crisp-edges;
 }
 
+/* On-screen game controls: kill iOS Safari long-press selection / callout
+   (magnifier) and tap highlight. Applied to descendants too, because the
+   long-press target is usually a child <svg>/<span>, and WebKit does not
+   reliably inherit these from the button. */
+.gb-controls,
+.gb-controls * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

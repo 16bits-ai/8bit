@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Home as HomeIcon } from 'lucide-react';
 
@@ -23,14 +23,24 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
   onJump,
   onHome,
 }) => {
-  // Prevent text selection / long-press callouts / scroll-on-drag on the controls.
-  const noSelect: React.CSSProperties = {
-    WebkitTapHighlightColor: 'transparent',
-    WebkitTouchCallout: 'none',
-    WebkitUserSelect: 'none',
-    userSelect: 'none',
-    touchAction: 'none',
-  };
+  const deckRef = useRef<HTMLDivElement>(null);
+
+  // iOS Safari still pops the text-selection / callout (magnifier) on long-press
+  // even with user-select:none, so we cancel the native touchstart. React's
+  // onTouchStart is registered as a passive listener (preventDefault is ignored
+  // there), hence the manual non-passive listener. The HOME button is exempt
+  // because it relies on the synthesized click event.
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const cancelTouch = (e: TouchEvent) => {
+      const target = e.target as Element | null;
+      if (target && target.closest('[data-gb-home]')) return;
+      e.preventDefault();
+    };
+    deck.addEventListener('touchstart', cancelTouch, { passive: false });
+    return () => deck.removeEventListener('touchstart', cancelTouch);
+  }, []);
 
   // Press-and-hold buttons (move left/right): fire start on press, end on release.
   const holdHandlers = (start: () => void, end: () => void) => ({
@@ -54,17 +64,18 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
 
   return (
     <div
-      className="absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-5 pointer-events-none"
+      ref={deckRef}
+      className="gb-controls absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-5 pointer-events-none"
       style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
     >
       {/* Directional pad */}
-      <div className="pointer-events-auto" style={noSelect}>
+      <div className="pointer-events-auto">
         <div className="grid grid-cols-3 grid-rows-3 w-[150px] h-[150px] gap-1">
           <motion.button
             aria-label="Jump"
             whileTap={{ scale: 0.88 }}
             className={`${dpadCell} col-start-2 row-start-1 rounded-t-lg`}
-            style={{ ...noSelect, boxShadow: `0 0 8px ${NEON}` }}
+            style={{ boxShadow: `0 0 8px ${NEON}` }}
             {...tapHandlers(onJump)}
           >
             <ChevronUp size={28} strokeWidth={3} />
@@ -74,17 +85,14 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
             aria-label="Move left"
             whileTap={{ scale: 0.88 }}
             className={`${dpadCell} col-start-1 row-start-2 rounded-l-lg`}
-            style={{ ...noSelect, boxShadow: `0 0 8px ${NEON}` }}
+            style={{ boxShadow: `0 0 8px ${NEON}` }}
             {...holdHandlers(onLeftStart, onLeftEnd)}
           >
             <ChevronLeft size={28} strokeWidth={3} />
           </motion.button>
 
           {/* Center hub */}
-          <div
-            className="col-start-2 row-start-2 flex items-center justify-center bg-black/80 border-2 border-[#00FF41]/40 backdrop-blur-sm"
-            style={noSelect}
-          >
+          <div className="col-start-2 row-start-2 flex items-center justify-center bg-black/80 border-2 border-[#00FF41]/40 backdrop-blur-sm">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: NEON, opacity: 0.5 }} />
           </div>
 
@@ -92,7 +100,7 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
             aria-label="Move right"
             whileTap={{ scale: 0.88 }}
             className={`${dpadCell} col-start-3 row-start-2 rounded-r-lg`}
-            style={{ ...noSelect, boxShadow: `0 0 8px ${NEON}` }}
+            style={{ boxShadow: `0 0 8px ${NEON}` }}
             {...holdHandlers(onRightStart, onRightEnd)}
           >
             <ChevronRight size={28} strokeWidth={3} />
@@ -103,7 +111,6 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
             aria-label="Down"
             whileTap={{ scale: 0.88 }}
             className={`${dpadCell} col-start-2 row-start-3 rounded-b-lg opacity-60`}
-            style={noSelect}
             onContextMenu={(e) => e.preventDefault()}
           >
             <ChevronDown size={28} strokeWidth={3} />
@@ -112,14 +119,15 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
       </div>
 
       {/* Center HOME button (sits where Start/Select would be on a Game Boy) */}
-      <div className="pointer-events-auto flex items-end pb-1" style={noSelect}>
+      <div className="pointer-events-auto flex items-end pb-1">
         <motion.button
           aria-label="Home"
+          data-gb-home
           whileTap={{ scale: 0.9 }}
           onClick={onHome}
           onContextMenu={(e) => e.preventDefault()}
           className="flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full bg-black/80 border-2 border-[#00FF41]/80 text-[#00FF41] backdrop-blur-sm"
-          style={{ ...noSelect, fontFamily: '"Press Start 2P", cursive' }}
+          style={{ fontFamily: '"Press Start 2P", cursive' }}
         >
           <HomeIcon size={16} strokeWidth={2.5} />
           <span className="text-[7px] leading-none">HOME</span>
@@ -127,16 +135,12 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
       </div>
 
       {/* A / B action buttons (both jump) */}
-      <div className="pointer-events-auto flex items-end gap-4" style={noSelect}>
+      <div className="pointer-events-auto flex items-end gap-4">
         <motion.button
           aria-label="Jump (B)"
           whileTap={{ scale: 0.88 }}
           className="flex items-center justify-center w-16 h-16 rounded-full bg-black/80 border-4 border-[#00FF41] text-[#00FF41] backdrop-blur-sm"
-          style={{
-            ...noSelect,
-            boxShadow: `0 0 10px ${NEON}`,
-            fontFamily: '"Press Start 2P", cursive',
-          }}
+          style={{ boxShadow: `0 0 10px ${NEON}`, fontFamily: '"Press Start 2P", cursive' }}
           {...tapHandlers(onJump)}
         >
           <span className="text-lg leading-none">B</span>
@@ -146,11 +150,7 @@ const GameBoyControls: React.FC<GameBoyControlsProps> = ({
           aria-label="Jump (A)"
           whileTap={{ scale: 0.88 }}
           className="flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-black/80 border-4 border-[#00FF41] text-[#00FF41] backdrop-blur-sm"
-          style={{
-            ...noSelect,
-            boxShadow: `0 0 10px ${NEON}`,
-            fontFamily: '"Press Start 2P", cursive',
-          }}
+          style={{ boxShadow: `0 0 10px ${NEON}`, fontFamily: '"Press Start 2P", cursive' }}
           {...tapHandlers(onJump)}
         >
           <span className="text-lg leading-none">A</span>
