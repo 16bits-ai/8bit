@@ -4,6 +4,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Theme tokens =====
+   Dark is the default (:root). Light mode is the "80s Macintosh off-white"
+   look, applied when <html data-theme="light">. The per-page accent is set
+   via <html data-page="..."> so each page keeps its own color identity.
+   Brand / semantic colors (flags, map colors, Airbnb coral, etc.) are NOT
+   tokenized — only the chrome (background, ink, accent, glow) is. */
+:root {
+  --paper: #000000;              /* page background */
+  --panel: rgba(0, 0, 0, 0.9);   /* card / panel fill */
+  --panel-strong: #000000;       /* fully opaque panel fill */
+  --ink: #ffffff;                /* primary foreground text */
+  --accent: #00ff41;             /* per-page accent (overridden below) */
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-dim: color-mix(in srgb, var(--accent) 70%, transparent);
+  --line: color-mix(in srgb, var(--ink) 28%, transparent); /* subtle adaptive border */
+  --glow-drop: drop-shadow(0 0 5px var(--accent));
+  --scrim: rgba(0, 0, 0, 0.7);
+  --glow-text: 0 0 5px var(--accent);
+  --glow-text-strong: 0 0 10px var(--accent), 0 0 20px var(--accent), 0 0 30px var(--accent);
+  --glow-box: 0 0 14px color-mix(in srgb, var(--accent) 45%, transparent);
+  --panel-shadow: none;
+}
+
+[data-page='home'] { --accent: #00ff41; }
+[data-page='terminal'] { --accent: #ffe66d; }
+[data-page='about'] { --accent: #ff6b35; }
+[data-page='gadgets'] { --accent: #9b59b6; }
+
+[data-theme='light'] {
+  --paper: #e8e3d5;
+  --panel: #f3efe4;
+  --panel-strong: #f3efe4;
+  --ink: #1b1a17;
+  --glow-text: none;
+  --glow-text-strong: none;
+  --glow-box: none;
+  --glow-drop: drop-shadow(0 0 0 transparent);
+  --scrim: rgba(27, 26, 23, 0.45);
+  --panel-shadow: 4px 4px 0 rgba(27, 26, 23, 0.18);
+}
+
+[data-theme='light'][data-page='home'] { --accent: #2f6d2e; }
+[data-theme='light'][data-page='terminal'] { --accent: #7a5a12; }
+[data-theme='light'][data-page='about'] { --accent: #9a4316; }
+[data-theme='light'][data-page='gadgets'] { --accent: #5e3370; }
+
+/* Smooth theme switch (only chrome props; leaves transform/opacity to framer-motion) */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+    color 0.25s ease, box-shadow 0.25s ease;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -13,7 +65,7 @@
 html {
   width: 100%;
   height: 100%;
-  background-color: #000000 !important;
+  background-color: var(--paper) !important;
 }
 
 body {
@@ -22,7 +74,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background-color: #000000 !important;
+  background-color: var(--paper) !important;
   margin: 0;
 }
 
@@ -31,7 +83,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background-color: #000000 !important;
+  background-color: var(--paper) !important;
 }
 
 .pixelated {
@@ -68,7 +120,7 @@ body {
 /* Terminal-style scrollbar */
 .terminal-scrollbar {
   scrollbar-width: auto;
-  scrollbar-color: #FFE66D #000000;
+  scrollbar-color: var(--accent) var(--paper);
 }
 
 .terminal-scrollbar::-webkit-scrollbar {
@@ -76,29 +128,28 @@ body {
 }
 
 .terminal-scrollbar::-webkit-scrollbar-track {
-  background: #000000;
-  border: 2px solid #FFE66D;
+  background: var(--paper);
+  border: 2px solid var(--accent);
   border-radius: 0;
 }
 
 .terminal-scrollbar::-webkit-scrollbar-thumb {
-  background: #FFE66D;
-  border: 2px solid #000000;
+  background: var(--accent);
+  border: 2px solid var(--paper);
   border-radius: 0;
   box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 .terminal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #FFD700;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.7), 0 0 4px #FFE66D;
+  background: var(--accent-dim);
 }
 
 .terminal-scrollbar::-webkit-scrollbar-thumb:active {
-  background: #FFA500;
+  background: var(--accent-dim);
 }
 
 /* Terminal scrollbar corner */
 .terminal-scrollbar::-webkit-scrollbar-corner {
-  background: #000000;
-  border: 2px solid #FFE66D;
+  background: var(--paper);
+  border: 2px solid var(--accent);
 }

@@ -24,7 +24,7 @@ const Gadgets: React.FC = () => {
   const [selectedGadget, setSelectedGadget] = useState<Gadget | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const themeColor = '#9B59B6'; // Purple to match dock icon
+  const themeColor = 'var(--accent)'; // Purple to match dock icon
 
   // Placeholder gadgets - replace with your actual images
   const gadgets: Gadget[] = [
@@ -66,7 +66,7 @@ const Gadgets: React.FC = () => {
   // Removed automatic scrolling - user can manually scroll
 
   return (
-    <div className="relative w-full min-h-screen bg-black overflow-hidden">
+    <div className="relative w-full min-h-screen bg-[var(--paper)] overflow-hidden">
       <ParallaxBackground color={themeColor} variant="grid" />
 
       <div className="relative z-10 w-full h-screen flex">
@@ -86,8 +86,8 @@ const Gadgets: React.FC = () => {
                   key={gadget.id}
                   className={`mx-4 p-3 cursor-pointer transition-all ${
                     selectedGadget?.id === gadget.id
-                      ? 'bg-[#9B59B6]/20'
-                      : 'bg-black/50'
+                      ? 'bg-[var(--accent-soft)]'
+                      : 'bg-[var(--panel)]'
                   }`}
                   onClick={() => setSelectedGadget(gadget)}
                   whileHover={{ scale: 1.05 }}
@@ -103,7 +103,7 @@ const Gadgets: React.FC = () => {
                           // Placeholder if image doesn't exist
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
-                          target.parentElement!.innerHTML = `<div class="text-[#9B59B6] text-xs text-center p-2" style="font-family: 'Press Start 2P', cursive;">${gadget.name}</div>`;
+                          target.parentElement!.innerHTML = `<div class="text-[var(--accent)] text-xs text-center p-2" style="font-family: 'Press Start 2P', cursive;">${gadget.name}</div>`;
                         }}
                       />
                     </div>
@@ -130,7 +130,7 @@ const Gadgets: React.FC = () => {
           <div className="md:hidden absolute left-2 right-2 top-1/2 -translate-y-1/2 flex justify-between z-20 pointer-events-none">
             <motion.button
               onClick={goToPrevious}
-              className="pointer-events-auto p-3 rounded-full border-4 bg-black/80 backdrop-blur-sm"
+              className="pointer-events-auto p-3 rounded-full border-4 bg-[var(--panel)] backdrop-blur-sm"
               style={{ borderColor: themeColor, color: themeColor }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -140,7 +140,7 @@ const Gadgets: React.FC = () => {
             </motion.button>
             <motion.button
               onClick={goToNext}
-              className="pointer-events-auto p-3 rounded-full border-4 bg-black/80 backdrop-blur-sm"
+              className="pointer-events-auto p-3 rounded-full border-4 bg-[var(--panel)] backdrop-blur-sm"
               style={{ borderColor: themeColor, color: themeColor }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -163,7 +163,7 @@ const Gadgets: React.FC = () => {
                   color: themeColor,
                   fontSize: '12px',
                   lineHeight: '2',
-                  textShadow: `0 0 10px ${themeColor}`
+                  textShadow: 'var(--glow-text)'
                 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -196,14 +196,14 @@ const Gadgets: React.FC = () => {
                   alt={selectedGadget.name}
                   className="max-w-full max-h-[600px] object-contain"
                   style={{
-                    filter: `drop-shadow(0 0 20px ${themeColor})`
+                    filter: 'var(--glow-drop)'
                   }}
                   onError={(e) => {
                     // Placeholder if image doesn't exist
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     const placeholder = document.createElement('div');
-                    placeholder.className = 'w-96 h-96 border-2 bg-black flex items-center justify-center';
+                    placeholder.className = 'w-96 h-96 border-2 bg-[var(--panel)] flex items-center justify-center';
                     placeholder.style.borderColor = themeColor;
                     placeholder.innerHTML = `<div class="text-center p-4" style="font-family: 'Press Start 2P', cursive; color: ${themeColor};">${selectedGadget.name}<br/><br/>Image Coming Soon</div>`;
                     target.parentElement?.appendChild(placeholder);

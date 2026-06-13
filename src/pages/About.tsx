@@ -27,16 +27,16 @@ const About: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full min-h-screen bg-black">
-      <ParallaxBackground color="#FF6B35" variant="dots" />
+    <div className="relative w-full min-h-screen bg-[var(--paper)]">
+      <ParallaxBackground color="var(--accent)" variant="dots" />
 
       <div className="relative z-10 container mx-auto px-4 py-20">
         <h1
           className="text-5xl md:text-7xl font-bold mb-12 text-center"
           style={{
             fontFamily: '"Press Start 2P", cursive',
-            color: '#FF6B35',
-            textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
+            color: 'var(--accent)',
+            textShadow: (isMobile || isSafari) ? 'var(--glow-text)' : 'var(--glow-text)',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale'
           }}
@@ -51,8 +51,8 @@ const About: React.FC = () => {
               className="text-3xl md:text-4xl font-bold mb-8"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                color: '#FF6B35',
-                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
+                color: 'var(--accent)',
+                textShadow: (isMobile || isSafari) ? 'var(--glow-text)' : 'var(--glow-text)',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale'
               }}
@@ -62,10 +62,10 @@ const About: React.FC = () => {
             <div className="space-y-6">
               {/* Presence */}
               <div
-                className="border-4 border-[#FF6B35] bg-black/80 p-6"
+                className="border-4 border-[var(--accent)] bg-[var(--panel)] p-6"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FF6B35',
+                  color: 'var(--accent)',
                   lineHeight: '1.8'
                 }}
               >
@@ -78,7 +78,7 @@ const About: React.FC = () => {
                   height={60}
                   style={{
                     imageRendering: 'pixelated',
-                    filter: 'drop-shadow(0 0 5px #FF6B35)',
+                    filter: 'var(--glow-drop)',
                   }}
                 />
                   <div className="flex-1">
@@ -95,10 +95,10 @@ const About: React.FC = () => {
 
               {/* Airbnb */}
               <div
-                className="border-4 border-[#FF6B35] bg-black/80 p-6"
+                className="border-4 border-[var(--accent)] bg-[var(--panel)] p-6"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FF6B35',
+                  color: 'var(--accent)',
                   lineHeight: '1.8'
                 }}
               >
@@ -109,7 +109,7 @@ const About: React.FC = () => {
                     className="h-12 w-auto pixelated flex-shrink-0"
                     style={{
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 0 5px #FF6B35)'
+                      filter: 'var(--glow-drop)'
                     }}
                   />
                   <div className="flex-1">
@@ -127,10 +127,10 @@ const About: React.FC = () => {
 
               {/* Tableau */}
               <div
-                className="border-4 border-[#FF6B35] bg-black/80 p-6"
+                className="border-4 border-[var(--accent)] bg-[var(--panel)] p-6"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FF6B35',
+                  color: 'var(--accent)',
                   lineHeight: '1.8'
                 }}
               >
@@ -141,7 +141,7 @@ const About: React.FC = () => {
                     className="h-12 w-auto pixelated flex-shrink-0"
                     style={{
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 0 5px #FF6B35)'
+                      filter: 'var(--glow-drop)'
                     }}
                   />
                   <div className="flex-1">
@@ -163,8 +163,8 @@ const About: React.FC = () => {
               className="text-3xl md:text-4xl font-bold mb-8"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                color: '#FF6B35',
-                textShadow: (isMobile || isSafari) ? '0 0 3px #FF6B35' : '0 0 10px #FF6B35',
+                color: 'var(--accent)',
+                textShadow: (isMobile || isSafari) ? 'var(--glow-text)' : 'var(--glow-text)',
                 WebkitFontSmoothing: 'antialiased',
                 MozOsxFontSmoothing: 'grayscale'
               }}
@@ -174,10 +174,10 @@ const About: React.FC = () => {
             <div className="space-y-6">
               {/* Stanford */}
               <div
-                className="border-4 border-[#FF6B35] bg-black/80 p-6"
+                className="border-4 border-[var(--accent)] bg-[var(--panel)] p-6"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FF6B35',
+                  color: 'var(--accent)',
                   lineHeight: '1.8'
                 }}
               >
@@ -188,7 +188,7 @@ const About: React.FC = () => {
                     className="h-12 w-auto pixelated flex-shrink-0"
                     style={{
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 0 5px #FF6B35)'
+                      filter: 'var(--glow-drop)'
                     }}
                   />
                   <div className="flex-1">
@@ -200,10 +200,10 @@ const About: React.FC = () => {
 
               {/* McGill */}
               <div
-                className="border-4 border-[#FF6B35] bg-black/80 p-6"
+                className="border-4 border-[var(--accent)] bg-[var(--panel)] p-6"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FF6B35',
+                  color: 'var(--accent)',
                   lineHeight: '1.8'
                 }}
               >
@@ -214,7 +214,7 @@ const About: React.FC = () => {
                     className="h-12 w-auto pixelated flex-shrink-0"
                     style={{
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 0 5px #FF6B35)'
+                      filter: 'var(--glow-drop)'
                     }}
                   />
                   <div className="flex-1">

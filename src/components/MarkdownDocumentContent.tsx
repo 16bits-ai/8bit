@@ -9,7 +9,7 @@ const renderInline = (text: string) => {
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
       return (
-        <a key={index} href={linkMatch[2]} className="underline hover:text-white">
+        <a key={index} href={linkMatch[2]} className="underline hover:text-[var(--ink)]">
           {linkMatch[1]}
         </a>
       );
@@ -21,7 +21,7 @@ const renderInline = (text: string) => {
 
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
-        <code key={index} className="border border-[#FFE66D]/50 bg-[#FFE66D]/10 px-1">
+        <code key={index} className="border border-[var(--accent-dim)] bg-[var(--accent-soft)] px-1">
           {part.slice(1, -1)}
         </code>
       );
@@ -51,11 +51,11 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
   const nodes: React.ReactNode[] = [];
   let index = 0;
   const paragraphClass = compact
-    ? 'mb-4 text-[0.65rem] leading-6 text-[#FFE66D]/90 md:text-xs'
-    : 'mb-5 text-sm leading-7 text-[#FFE66D]/90 md:text-base';
+    ? 'mb-4 text-[0.65rem] leading-6 text-[var(--accent)] md:text-xs'
+    : 'mb-5 text-sm leading-7 text-[var(--accent)] md:text-base';
   const headingClass = compact
-    ? 'mb-3 mt-7 text-xs font-bold text-[#FFE66D] md:text-sm'
-    : 'mb-4 mt-10 text-base font-bold text-[#FFE66D] md:text-xl';
+    ? 'mb-3 mt-7 text-xs font-bold text-[var(--accent)] md:text-sm'
+    : 'mb-4 mt-10 text-base font-bold text-[var(--accent)] md:text-xl';
 
   const consumeParagraph = () => {
     const paragraph: string[] = [];
@@ -101,8 +101,8 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
       }
       index += 1;
       nodes.push(
-        <pre key={nodes.length} className="mb-6 overflow-x-auto border-2 border-[#FFE66D] bg-black p-4 text-xs text-[#FFE66D]/90">
-          {language && <div className="mb-3 text-[#FFE66D]/60">{language.toUpperCase()}</div>}
+        <pre key={nodes.length} className="mb-6 overflow-x-auto border-2 border-[var(--accent)] bg-[var(--panel)] p-4 text-xs text-[var(--accent)]">
+          {language && <div className="mb-3 text-[var(--accent-dim)]">{language.toUpperCase()}</div>}
           <code>{code.join('\n')}</code>
         </pre>
       );
@@ -127,13 +127,13 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
       const src = image[2];
       nodes.push(
         isVideoSource(src) ? (
-          <video key={nodes.length} src={src} controls className="my-6 w-full rounded-sm border-2 border-[#FFE66D] bg-black" />
+          <video key={nodes.length} src={src} controls className="my-6 w-full rounded-sm border-2 border-[var(--accent)] bg-[var(--panel)]" />
         ) : (
           <img
             key={nodes.length}
             src={src}
             alt={image[1]}
-            className="my-6 w-full rounded-sm border-2 border-[#FFE66D] bg-black object-cover"
+            className="my-6 w-full rounded-sm border-2 border-[var(--accent)] bg-[var(--panel)] object-cover"
           />
         )
       );
@@ -150,9 +150,9 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
         index += 1;
       }
       nodes.push(
-        <div key={nodes.length} className="my-8 overflow-x-auto border-2 border-[#FFE66D]">
+        <div key={nodes.length} className="my-8 overflow-x-auto border-2 border-[var(--accent)]">
           <table className="w-full border-collapse text-left text-xs md:text-sm">
-            <thead className="bg-[#FFE66D] text-black">
+            <thead className="bg-[var(--accent)] text-[var(--paper)]">
               <tr>
                 {headers.map((header) => (
                   <th key={header} className="p-3">
@@ -163,9 +163,9 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
             </thead>
             <tbody>
               {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-t border-[#FFE66D]">
+                <tr key={rowIndex} className="border-t border-[var(--accent)]">
                   {row.map((cell, cellIndex) => (
-                    <td key={`${rowIndex}-${cellIndex}`} className="p-3 align-top text-[#FFE66D]/90">
+                    <td key={`${rowIndex}-${cellIndex}`} className="p-3 align-top text-[var(--accent)]">
                       {cell.match(/^!\[[^\]]*\]\([^)]+\)$/) ? (
                         <MarkdownDocumentContent markdown={cell} compact={compact} />
                       ) : (
@@ -196,7 +196,7 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
       nodes.push(
         <ListTag
           key={nodes.length}
-          className={`mb-6 space-y-3 pl-6 text-sm leading-7 text-[#FFE66D]/90 md:text-base ${
+          className={`mb-6 space-y-3 pl-6 text-sm leading-7 text-[var(--accent)] md:text-base ${
             ordered ? 'list-decimal' : 'list-disc'
           }`}
         >
@@ -215,7 +215,7 @@ const MarkdownDocumentContent = ({ markdown, compact = false }: MarkdownDocument
         index += 1;
       }
       nodes.push(
-        <blockquote key={nodes.length} className="mb-6 border-l-4 border-[#FFE66D] bg-[#FFE66D]/10 p-4 text-sm leading-7 text-[#FFE66D]/90 md:text-base">
+        <blockquote key={nodes.length} className="mb-6 border-l-4 border-[var(--accent)] bg-[var(--accent-soft)] p-4 text-sm leading-7 text-[var(--accent)] md:text-base">
           {renderInline(quote.join(' '))}
         </blockquote>
       );

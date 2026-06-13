@@ -24,7 +24,7 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
+    <div className="relative w-full h-screen overflow-hidden bg-[var(--paper)]">
       <ParallaxBackground color="#00FF41" variant="grid" />
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 pb-32">
@@ -39,9 +39,9 @@ const Home: React.FC = () => {
             style={{
               fontFamily: '"Press Start 2P", cursive',
               textShadow: (isMobile || isSafari)
-                ? '0 0 3px #00FF41' 
-                : '0 0 10px #00FF41, 0 0 20px #00FF41, 0 0 30px #00FF41',
-              color: '#00FF41',
+                ? 'var(--glow-text)'
+                : 'var(--glow-text-strong)',
+              color: 'var(--accent)',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
               textRendering: 'optimizeLegibility',
@@ -63,8 +63,8 @@ const Home: React.FC = () => {
             className="text-sm sm:text-base md:text-xl lg:text-2xl mb-6 md:mb-8 tracking-wide"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#00FF41',
-              textShadow: '0 0 5px #00FF41'
+              color: 'var(--accent)',
+              textShadow: 'var(--glow-text)'
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -80,14 +80,9 @@ const Home: React.FC = () => {
             transition={{ duration: 0.8, delay: 1.2 }}
           >
             <motion.button
-              className="px-8 py-4 border-4 border-[#00FF41] bg-black text-[#00FF41] font-bold text-lg tracking-wider"
+              className="px-8 py-4 border-4 border-[var(--accent)] bg-[var(--paper)] text-[var(--accent)] font-bold text-lg tracking-wider transition-colors hover:bg-[var(--accent)] hover:text-[var(--paper)] hover:shadow-[var(--glow-box)]"
               style={{ fontFamily: '"Press Start 2P", cursive' }}
-              whileHover={{
-                scale: 1.05,
-                backgroundColor: '#00FF41',
-                color: '#000000',
-                boxShadow: '0 0 20px #00FF41'
-              }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 localStorage.removeItem('gameCurrentLevel');
@@ -98,12 +93,9 @@ const Home: React.FC = () => {
             </motion.button>
 
             <motion.button
-              className="px-8 py-4 border-4 border-[#00FF41] bg-transparent text-[#00FF41] font-bold text-lg tracking-wider"
+              className="px-8 py-4 border-4 border-[var(--accent)] bg-transparent text-[var(--accent)] font-bold text-lg tracking-wider transition-colors hover:text-[var(--paper)] hover:bg-[var(--accent)] hover:shadow-[var(--glow-box)]"
               style={{ fontFamily: '"Press Start 2P", cursive' }}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: '0 0 20px #00FF41'
-              }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/game')}
             >
@@ -120,7 +112,7 @@ const Home: React.FC = () => {
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5 }}
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#00FF41',
+              color: 'var(--accent)',
               fontSize: '14px'
             }}
           >

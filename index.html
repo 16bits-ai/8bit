@@ -27,6 +27,22 @@
     <meta name="apple-mobile-web-app-title" content="Carl Liu" />
     
     <title>Carl Liu's Terminal</title>
+
+    <!-- Set theme before paint to avoid a flash. First visit follows the OS
+         setting; an explicit choice (saved by the dock toggle) wins. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('carlrocks-theme');
+          var theme = (stored === 'light' || stored === 'dark')
+            ? stored
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -404,7 +404,7 @@ const Terminal: React.FC = () => {
             href={href} 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+            className="underline text-[var(--accent)] hover:text-[var(--ink)] transition-colors cursor-pointer"
           >
             {part}
           </a>
@@ -414,7 +414,7 @@ const Terminal: React.FC = () => {
           <a
             key={i}
             href={part}
-            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+            className="underline text-[var(--accent)] hover:text-[var(--ink)] transition-colors cursor-pointer"
           >
             {part}
           </a>
@@ -424,7 +424,7 @@ const Terminal: React.FC = () => {
           <a 
             key={i} 
             href={`mailto:${part}`} 
-            className="underline text-[#FFE66D] hover:text-white transition-colors cursor-pointer"
+            className="underline text-[var(--accent)] hover:text-[var(--ink)] transition-colors cursor-pointer"
           >
             {part}
           </a>
@@ -456,8 +456,8 @@ const Terminal: React.FC = () => {
                 onClick={() => handleDocumentAction(link.href)}
                 className={`block w-full border-2 px-3 py-2 text-left text-[0.55rem] leading-5 transition-all md:text-xs ${
                   activeDocumentPath === link.href
-                    ? 'border-white bg-[#FFE66D] text-black'
-                    : 'border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black'
+                    ? 'border-[var(--ink)] bg-[var(--accent)] text-[var(--paper)]'
+                    : 'border-[var(--accent)] bg-[var(--panel)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--paper)]'
                 }`}
               >
                 {label}
@@ -471,7 +471,7 @@ const Terminal: React.FC = () => {
               href={link.href}
               target={link.isExternal ? '_blank' : undefined}
               rel={link.isExternal ? 'noopener noreferrer' : undefined}
-              className="block border-2 border-[#FFE66D] bg-black px-3 py-2 text-[0.55rem] leading-5 text-[#FFE66D] transition-all hover:bg-[#FFE66D] hover:text-black md:text-xs"
+              className="block border-2 border-[var(--accent)] bg-[var(--panel)] px-3 py-2 text-[0.55rem] leading-5 text-[var(--accent)] transition-all hover:bg-[var(--accent)] hover:text-[var(--paper)] md:text-xs"
             >
               {label}
             </a>
@@ -485,7 +485,7 @@ const Terminal: React.FC = () => {
     if (message.type === 'projects') {
       return (
         <div className="space-y-6 w-full">
-          <div className="text-[#FFE66D] mb-4">HERE ARE MY CURRENT PROJECTS:</div>
+          <div className="text-[var(--accent)] mb-4">HERE ARE MY CURRENT PROJECTS:</div>
           {[
             { id: 1, logo: patternizeLogo, title: 'Patternize.io', description: 'Helps people visualize Computer Science concepts', url: 'https://patternize.github.io/' },
             { id: 2, logo: carlTechReviewsLogo, title: 'Carl Tech Reviews', description: 'A blog about technology and software development', url: 'https://gazcn007.github.io/' },
@@ -500,10 +500,10 @@ const Terminal: React.FC = () => {
               className="block group"
             >
               <div
-                className="border-2 border-[#FFE66D] bg-black p-4 hover:bg-[#FFE66D]/10 transition-all cursor-pointer flex flex-col md:flex-row gap-4 items-center md:items-start"
+                className="border-2 border-[var(--accent)] bg-[var(--panel)] p-4 hover:bg-[var(--accent-soft)] transition-all cursor-pointer flex flex-col md:flex-row gap-4 items-center md:items-start"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  color: '#FFE66D',
+                  color: 'var(--accent)',
                   lineHeight: '1.6'
                 }}
               >
@@ -514,15 +514,15 @@ const Terminal: React.FC = () => {
                     className="h-12 w-auto pixelated flex-shrink-0"
                     style={{
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 0 5px #FFE66D)'
+                      filter: 'var(--glow-drop)'
                     }}
                   />
                 )}
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-sm md:text-base mb-2 text-[#FFE66D] group-hover:text-white transition-colors">
+                  <h3 className="text-sm md:text-base mb-2 text-[var(--accent)] group-hover:text-[var(--ink)] transition-colors">
                     {project.title.toUpperCase()}
                   </h3>
-                  <p className="text-[0.6rem] md:text-xs opacity-80 text-[#FFE66D]">
+                  <p className="text-[0.6rem] md:text-xs opacity-80 text-[var(--accent)]">
                     {project.description.toUpperCase()}
                   </p>
                 </div>
@@ -533,7 +533,7 @@ const Terminal: React.FC = () => {
             href="https://github.com/gazcn007"
             target="_blank"
             rel="noopener noreferrer"
-            className="block border-2 border-[#FFE66D] bg-black p-3 text-[0.6rem] leading-5 text-[#FFE66D] transition-all hover:bg-[#FFE66D] hover:text-black md:text-xs"
+            className="block border-2 border-[var(--accent)] bg-[var(--panel)] p-3 text-[0.6rem] leading-5 text-[var(--accent)] transition-all hover:bg-[var(--accent)] hover:text-[var(--paper)] md:text-xs"
           >
             VISIT MY GITHUB FOR MORE INFO
           </a>
@@ -546,7 +546,7 @@ const Terminal: React.FC = () => {
 
     if (message.sender === 'bot' && message.isTyping) {
       return (
-        <div className="text-[#FFE66D] break-words whitespace-pre-wrap">
+        <div className="text-[var(--accent)] break-words whitespace-pre-wrap">
           <span>
             {renderMessageWithLinks(displayText)}
             <motion.span
@@ -563,7 +563,7 @@ const Terminal: React.FC = () => {
     }
 
     return (
-      <div className="text-[#FFE66D] break-words whitespace-pre-wrap">
+      <div className="text-[var(--accent)] break-words whitespace-pre-wrap">
         {renderMessageWithLinks(displayText)}
         {renderLinkActions(messageLinks)}
       </div>
@@ -577,13 +577,13 @@ const Terminal: React.FC = () => {
 
   return (
     <div 
-      className="relative w-full bg-black overflow-hidden"  
+      className="relative w-full bg-[var(--paper)] overflow-hidden"  
       style={{ 
         height: viewportHeight,
         minHeight: typeof viewportHeight === 'string' ? viewportHeight : `${viewportHeight}px` 
       }}
     >
-      <ParallaxBackground color="#FFE66D" variant="lines" />
+      <ParallaxBackground color="var(--accent)" variant="lines" />
 
       <div
         className="relative z-10 mx-auto flex h-full w-full max-w-[1800px] items-center px-4 py-2 md:px-6 md:py-6"
@@ -594,14 +594,14 @@ const Terminal: React.FC = () => {
           style={{ minHeight: 0 }}
         >
           <div
-            className={`flex h-full w-full flex-col border-4 border-[#FFE66D] bg-black/90 p-4 transition-[left,width,max-width,transform] duration-500 ease-out md:absolute md:bottom-0 md:top-0 md:p-8 ${
+            className={`flex h-full w-full flex-col border-4 border-[var(--accent)] bg-[var(--panel)] p-4 transition-[left,width,max-width,transform] duration-500 ease-out md:absolute md:bottom-0 md:top-0 md:p-8 ${
               isSidePaneOpen
                 ? 'md:left-0 md:w-[38%] md:max-w-[620px] md:translate-x-0'
                 : 'md:left-1/2 md:w-full md:max-w-4xl md:-translate-x-1/2'
             }`}
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#FFE66D',
+              color: 'var(--accent)',
               minHeight: 0
             }}
           >
@@ -629,15 +629,15 @@ const Terminal: React.FC = () => {
                       }}
                       className={`max-w-[90%] md:max-w-[85%] p-3 border-2 text-left disabled:cursor-default ${
                         message.sender === 'user'
-                          ? 'border-[#FFE66D] bg-[#FFE66D]/10'
-                          : 'border-[#FFE66D] bg-black'
-                      } ${isJourneyMapMessage(message) ? 'cursor-pointer transition-colors hover:bg-[#FFE66D]/10 hover:shadow-[0_0_12px_rgba(255,230,109,0.35)]' : ''}`}
+                          ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                          : 'border-[var(--accent)] bg-[var(--panel)]'
+                      } ${isJourneyMapMessage(message) ? 'cursor-pointer transition-colors hover:bg-[var(--accent-soft)] hover:shadow-[var(--glow-box)]' : ''}`}
                       style={{
                         wordBreak: 'break-word',
                         fontSize: '0.6rem',
                         lineHeight: '1.6',
                         fontFamily: '"Press Start 2P", cursive',
-                        color: '#FFE66D'
+                        color: 'var(--accent)'
                       }}
                     >
                       {renderMessageContent(message)}
@@ -655,14 +655,14 @@ const Terminal: React.FC = () => {
                   className="flex justify-start"
                 >
                   <div
-                    className="max-w-[80%] md:max-w-[70%] p-3 border-2 border-[#FFE66D] bg-black"
+                    className="max-w-[80%] md:max-w-[70%] p-3 border-2 border-[var(--accent)] bg-[var(--panel)]"
                     style={{
                       wordBreak: 'break-word',
                       fontSize: '0.6rem',
                       lineHeight: '1.6'
                     }}
                   >
-                    <span className="text-[#FFE66D] inline-flex items-center gap-1">
+                    <span className="text-[var(--accent)] inline-flex items-center gap-1">
                       <span>LOADING</span>
                       <motion.span
                         animate={{ opacity: [1, 0, 1] }}
@@ -690,27 +690,27 @@ const Terminal: React.FC = () => {
                   <motion.button
                     key={index}
                     onClick={() => handleOptionClick(option)}
-                    className="w-full text-left p-3 border-2 border-[#FFE66D] bg-black hover:bg-[#FFE66D]/10 transition-all"
+                    className="w-full text-left p-3 border-2 border-[var(--accent)] bg-[var(--panel)] hover:bg-[var(--accent-soft)] transition-all"
                     style={{
                       fontFamily: '"Press Start 2P", cursive',
                       fontSize: '0.5rem',
                       lineHeight: '1.6',
-                      color: '#FFE66D'
+                      color: 'var(--accent)'
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="text-[#FFE66D] mr-2">{index + 1}.</span>
-                    <span className="text-[#FFE66D]">{option.toUpperCase()}</span>
+                    <span className="text-[var(--accent)] mr-2">{index + 1}.</span>
+                    <span className="text-[var(--accent)]">{option.toUpperCase()}</span>
                   </motion.button>
                 ))}
               </motion.div>
             )}
 
             {/* Input Area */}
-            <form onSubmit={handleSendMessage} className="border-t-2 border-[#FFE66D] pt-4">
+            <form onSubmit={handleSendMessage} className="border-t-2 border-[var(--accent)] pt-4">
               <div className="flex gap-1 md:gap-2 items-center">
-                <span className="text-[#FFE66D] text-xs self-center flex-shrink-0">{'>'}</span>
+                <span className="text-[var(--accent)] text-xs self-center flex-shrink-0">{'>'}</span>
                 <input
                   ref={inputRef}
                   type="text"
@@ -721,7 +721,7 @@ const Terminal: React.FC = () => {
                     setTimeout(scrollToBottom, 300);
                   }}
                   placeholder="TYPE YOUR MESSAGE..."
-                  className="flex-1 min-w-0 bg-black border-2 border-[#FFE66D] p-2 md:p-3 text-[#FFE66D] focus:outline-none focus:border-[#FFE66D] focus:shadow-[0_0_10px_#FFE66D] text-xs md:text-sm"
+                  className="flex-1 min-w-0 bg-[var(--panel)] border-2 border-[var(--accent)] p-2 md:p-3 text-[var(--accent)] focus:outline-none focus:border-[var(--accent)] focus:shadow-[var(--glow-box)] text-xs md:text-sm"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                   disabled={isBotTyping}
                   autoFocus
@@ -732,7 +732,7 @@ const Terminal: React.FC = () => {
                   onClick={() => setIsConfirmingClear(true)}
                   aria-label="Clear conversation history"
                   title="Clear conversation history"
-                  className="px-2 md:px-3 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
+                  className="px-2 md:px-3 py-2 md:py-3 border-2 border-[var(--accent)] bg-[var(--panel)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--paper)] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                 >
                   <RotateCcw size={16} strokeWidth={2.5} />
@@ -740,7 +740,7 @@ const Terminal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isBotTyping}
-                  className="px-2 md:px-4 lg:px-6 py-2 md:py-3 border-2 border-[#FFE66D] bg-black text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
+                  className="px-2 md:px-4 lg:px-6 py-2 md:py-3 border-2 border-[var(--accent)] bg-[var(--panel)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--paper)] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm flex-shrink-0 whitespace-nowrap"
                   style={{ fontFamily: '"Press Start 2P", cursive' }}
                 >
                   SEND
@@ -756,17 +756,17 @@ const Terminal: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '110%' }}
               transition={{ type: 'spring', stiffness: 180, damping: 28 }}
-              className="hidden border-4 border-[#FFE66D] bg-black/95 text-[#FFE66D] shadow-[0_0_24px_rgba(255,230,109,0.2)] md:absolute md:bottom-0 md:right-0 md:top-0 md:flex md:w-[calc(62%_-_1rem)] md:flex-col"
+              className="hidden border-4 border-[var(--accent)] bg-[var(--panel)] text-[var(--accent)] shadow-[var(--glow-box)] md:absolute md:bottom-0 md:right-0 md:top-0 md:flex md:w-[calc(62%_-_1rem)] md:flex-col"
               style={{ minHeight: 0 }}
             >
-              <div className="flex items-start justify-between gap-4 border-b-2 border-[#FFE66D] p-4">
+              <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--accent)] p-4">
                 <div className="min-w-0">
                   {activeDocument && (
                     <div className="mb-2 flex flex-wrap gap-2">
                       {activeDocument.tags.slice(0, 4).map(tag => (
                         <span
                           key={tag}
-                          className="border border-[#FFE66D] px-2 py-1 text-[0.48rem]"
+                          className="border border-[var(--accent)] px-2 py-1 text-[0.48rem]"
                           style={{ fontFamily: '"Press Start 2P", cursive' }}
                         >
                           {tag.toUpperCase()}
@@ -780,7 +780,7 @@ const Terminal: React.FC = () => {
                   >
                     {(activeDocument?.title ?? 'World Journey').toUpperCase()}
                   </h2>
-                  <p className="mt-2 text-xs text-[#FFE66D]/70">
+                  <p className="mt-2 text-xs text-[var(--accent-dim)]">
                     {activeDocument?.date ?? 'PLACES, PHOTOS, AND LIFE TIMELINE'}
                   </p>
                 </div>
@@ -791,7 +791,7 @@ const Terminal: React.FC = () => {
                     rel="noopener noreferrer"
                     aria-label="Open document in new tab"
                     title="Open document in new tab"
-                    className="border-2 border-[#FFE66D] bg-black p-2 text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black"
+                    className="border-2 border-[var(--accent)] bg-[var(--panel)] p-2 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--paper)]"
                   >
                     <Maximize2 size={16} strokeWidth={2.5} />
                   </a>
@@ -803,7 +803,7 @@ const Terminal: React.FC = () => {
                     }}
                     aria-label="Close document pane"
                     title="Close document pane"
-                    className="border-2 border-[#FFE66D] bg-black p-2 text-[#FFE66D] hover:bg-[#FFE66D] hover:text-black"
+                    className="border-2 border-[var(--accent)] bg-[var(--panel)] p-2 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--paper)]"
                   >
                     <X size={16} strokeWidth={2.5} />
                   </button>
@@ -826,13 +826,13 @@ const Terminal: React.FC = () => {
       <AnimatePresence>
         {isConfirmingClear && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="w-full max-w-lg border-4 border-[#FFE66D] bg-black p-5 text-[#FFE66D] shadow-[0_0_24px_rgba(255,230,109,0.35)] md:p-8"
+              className="w-full max-w-lg border-4 border-[var(--accent)] bg-[var(--panel)] p-5 text-[var(--accent)] shadow-[var(--glow-box)] md:p-8"
               initial={{ scale: 0.95, y: 12 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 12 }}
@@ -846,14 +846,14 @@ const Terminal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsConfirmingClear(false)}
-                  className="border-2 border-[#FFE66D] bg-black px-4 py-3 text-xs text-[#FFE66D] hover:bg-[#FFE66D]/10"
+                  className="border-2 border-[var(--accent)] bg-[var(--panel)] px-4 py-3 text-xs text-[var(--accent)] hover:bg-[var(--accent-soft)]"
                 >
                   CANCEL
                 </button>
                 <button
                   type="button"
                   onClick={handleClearConversation}
-                  className="border-2 border-[#FFE66D] bg-[#FFE66D] px-4 py-3 text-xs text-black hover:bg-white"
+                  className="border-2 border-[var(--accent)] bg-[var(--accent)] px-4 py-3 text-xs text-[var(--paper)] hover:bg-white"
                 >
                   CLEAR
                 </button>

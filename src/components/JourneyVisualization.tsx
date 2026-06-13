@@ -417,7 +417,7 @@ const markers = [
 ];
 
 const JourneyVisualization = () => (
-  <div className="h-full min-h-[520px] overflow-hidden border-2 border-[#FFE66D] bg-black">
+  <div className="h-full min-h-[520px] overflow-hidden border-2 border-[var(--accent)] bg-[var(--panel)]">
     <TravelGlobeMap
       width="100%"
       height="100%"
